@@ -1,0 +1,38 @@
+{
+    "configurations": [
+        {
+            "name": "AVR ATmega328P",
+            "compilerPath": "D:/avr8-gnu-toolchain/bin/avr-gcc.exe",
+            "compilerArgs": [
+                "-mmcu=atmega328p"
+            ],
+            "includePath": [
+                "${workspaceFolder}/inc",
+                "D:/avr8-gnu-toolchain/avr/include",
+                "D:/avr8-gnu-toolchain/avr/include/avr",
+                "D:/avr8-gnu-toolchain/avr/include/util",
+                "D:/avr8-gnu-toolchain/avr/include/compat",
+                "D:/avr8-gnu-toolchain/lib/gcc/avr/4.9.2/include"
+            ],
+            "defines": [
+                "__AVR_ATmega328P__",
+                "F_CPU=16000000UL",
+                "__AVR__",
+                "__GNUC__"
+            ],
+            "intelliSenseMode": "gcc-x86",
+            "cStandard": "c99",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/inc",
+                    "D:/avr8-gnu-toolchain/avr/include",
+                    "D:/avr8-gnu-toolchain/avr/include/avr",
+                    "D:/avr8-gnu-toolchain/lib/gcc/avr/4.9.2/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}
