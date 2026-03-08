@@ -35,7 +35,7 @@
 // D7           PB0
 // D6           PD7
 // D5           PD6
-// D4           PD5
+// D4           PB1
 // LCD_E        PD4
 // LCD_W        GND
 // LCD_RS       PD3
@@ -53,8 +53,8 @@
 
 void Configure_Pins(void)
 {
-	DDRB|=0b00000001; // PB0 is output.
-	DDRD|=0b11011000; // PD3, PD4, PD5, PD6, and PD7 are outputs.
+	DDRB|=0b00000011; // PB0, PB1 is output.
+	DDRD|=0b11011000; // PD3, PD4, PD6, and PD7 are outputs.
 }
 
 void cal_resistence (unsigned long F, float* resistance) {
@@ -143,10 +143,14 @@ static uint32_t count_t1_rising_edges_1s(void)
 int main( void )
 {
 	char buff[17];
+	char uart_buff[32];
 	uint32_t pulse_count;
+    float capacitance;
 
+    Configure_Pins();
+	LCD_4BIT();
 	initUART(); // configure the usart and baudrate
-	
+
 	_delay_ms(500); // Give putty some time to start.
 	printf("ATMega328P 4-bit LCD test.\n");
 
@@ -156,8 +160,12 @@ int main( void )
 	while(1)
 	{
 		pulse_count = count_t1_rising_edges_1s();
-		sprintf(buff, "freq: %u\n", pulse_count);
-		writeString(buff);
+        cal_capacitance(pulse_count, &capacitance);
+		sprintf(uart_buff, "freq: %lu %f\n", pulse_count, capacitance);
+		writeString(uart_buff);
+        sprintf(buff, "%.2f", capacitance);
+        LCDprint("Capacitance:", 1, 1);
+        LCDprint(buff, 2, 1);
 
         // pulse_count now holds:
         // number of rising edges on T1 during ~1 second
