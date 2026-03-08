@@ -24,14 +24,14 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Compiler flags
-COPT = -g -Os $(CPU) -I$(INC_DIR)
+COPT = -g -Os $(CPU) -I$(INC_DIR) -DF_CPU=16000000UL
 
 # Default target
 all: $(BUILD_DIR)/$(TARGET).hex
 
 # Link object files into .elf, then convert to .hex
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS)
-	$(CC) $(CPU) -Wl,-Map,$(BUILD_DIR)/$(TARGET).map $^ -o $@
+	$(CC) $(CPU) -Wl,-Map,$(BUILD_DIR)/$(TARGET).map $^ -o $@ -Wl,-u,vfprintf -lprintf_flt -lm
 	$(SIZE) $@
 
 $(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).elf
@@ -62,7 +62,7 @@ endif
 COM%:
 	@rem
 
-# Flash the hex file to the microcontroller
+# Flash the hex file and set fuse bits for external 16 MHz crystal
 flashload:
 	spi_atmega -CRYSTAL -p -v -PORT=$(PORT) $(BUILD_DIR)/$(TARGET).hex
 

@@ -1,11 +1,9 @@
-#define F_CPU 16000000L
-
 #define LCD_RS_0 (PORTD &= ~(1<<3))
 #define LCD_RS_1 (PORTD |=  (1<<3))
 #define LCD_E_0  (PORTD &= ~(1<<4))
 #define LCD_E_1  (PORTD |=  (1<<4))
-#define LCD_D4_0 (PORTD &= ~(1<<5))
-#define LCD_D4_1 (PORTD |=  (1<<5))
+#define LCD_D4_0 (PORTB &= ~(1<<1))
+#define LCD_D4_1 (PORTB |=  (1<<1))
 #define LCD_D5_0 (PORTD &= ~(1<<6))
 #define LCD_D5_1 (PORTD |=  (1<<6))
 #define LCD_D6_0 (PORTD &= ~(1<<7))
