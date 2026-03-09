@@ -1,0 +1,101 @@
+<MODULE>
+build/timer
+</MODULE>
+
+<OPTC51>
+--model-small
+</OPTC51>
+
+<SEGMENTS>
+R_GSINIT,code,0000,NO
+R_BSEG,bit,0000,NO
+R_XSEG,xdata,0000,NO
+BIT_BANK,data,0000,OV
+R_CONST,code,0000,NO
+rbank0,data,0000,OV
+R_PSEG,xdata,0000,NO
+R_DINIT,code,0009,NO
+R_DSEG,data,0004,NO
+R_OSEG,data,0000,OV
+R_IXSEG,xdata,0000,NO
+R_ISEG,idata,0000,NO
+R_HOME,code,0000,NO
+R_XINIT,code,0000,NO
+R_CSEG,code,0026,NO
+</SEGMENTS>
+
+<LOCALS>
+</LOCALS>
+
+<PUBLICS>
+_TIMER0_Init,R_CSEG,0000,0000
+_Timer0_ISR,R_CSEG,001D,0000
+_timer0_isr_ticks,R_DSEG,0000,0004
+</PUBLICS>
+
+<EXTERNALS>
+</EXTERNALS>
+
+<CODE AT 0000>
+</CODE>
+
+<CODE R_HOME>
+</CODE>
+
+<CODE R_GSINIT>
+</CODE>
+
+<CODE R_CSEG>
+</CODE>
+
+<CODE AT 000B>
+02 addr16(_Timer0_ISR;)  
+</CODE>
+
+<CODE R_HOME>
+</CODE>
+
+<CODE R_GSINIT>
+</CODE>
+
+<CODE R_GSINIT>
+</CODE>
+
+<CODE R_DINIT>
+E4
+F5 data8(_timer0_isr_ticks;)
+F5 data8(_timer0_isr_ticks;0x0001;+;)
+F5 data8(_timer0_isr_ticks;0x0002;+;)
+F5 data8(_timer0_isr_ticks;0x0003;+;)
+</CODE>
+
+<CODE R_CSEG>
+C2 8C
+53 89 F0
+43 89 01
+53 8E F8
+43 8E 04
+75 8C FC
+75 8A 4C
+C2 8D
+D2 A9
+D2 AF
+D2 8C
+22
+75 8C FC
+75 8A 4C
+B2 A1
+32
+</CODE>
+
+<CODE R_CSEG>
+</CODE>
+
+<CODE R_XINIT>
+</CODE>
+
+<CODE R_CONST>
+</CODE>
+
+<CODE AT 000E>
+</CODE>
