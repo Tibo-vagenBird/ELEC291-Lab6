@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 19:51:50 2026
+; This file was generated Sun Mar 08 20:37:20 2026
 ;--------------------------------------------------------
 $name bootloader
 $optc51 --model-small
@@ -570,39 +570,47 @@ L002004?:
 	jnb	acc.7,L002004?
 ;	src/bootloader.c:53: SFRPAGE = 0x00;
 	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:57: P0MDOUT |= 0x14;           // P0.2 and P0.4 push-pull (UART TX lines)
+;	src/bootloader.c:54: P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output (P0.4)
 	orl	_P0MDOUT,#0x14
-;	src/bootloader.c:58: P2MDOUT |= 0b_0000_0010;   // P2.1 push-pull (IR 38 kHz output)
-	orl	_P2MDOUT,#0x02
-;	src/bootloader.c:61: P2MDIN  |= 0b_0000_0010;   // P2.1 digital (not analog)
-	orl	_P2MDIN,#0x02
-;	src/bootloader.c:66: P0SKIP = 0xC3;
+;	src/bootloader.c:56: P0SKIP = 0xC3;
 	mov	_P0SKIP,#0xC3
-;	src/bootloader.c:67: P2SKIP |= 0b_0000_0010;
-	orl	_P2SKIP,#0x02
-;	src/bootloader.c:72: XBR0 = 0x01;               // UART0 enable
+;	src/bootloader.c:57: XBR0     = 0x01; // Enable UART0 on P0.4(TX) and P0.5(RX)
 	mov	_XBR0,#0x01
-;	src/bootloader.c:73: XBR1 = 0x00;
+;	src/bootloader.c:58: XBR1     = 0x00;
 	mov	_XBR1,#0x00
-;	src/bootloader.c:74: XBR2 = 0x41;               // XBARE (bit6) + UART1EN (bit0)
+;	src/bootloader.c:59: XBR2     = 0x41; // Enable crossbar (bit6), enable UART1 (bit0) on 
 	mov	_XBR2,#0x41
-;	src/bootloader.c:76: SFRPAGE = 0x00;
+;	src/bootloader.c:60: SFRPAGE = 0x00;
 	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:78: return 0;
+;	src/bootloader.c:62: return 0;
 	mov	dpl,#0x00
 	ret
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'init_pin_input'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/bootloader.c:84: void init_pin_input(void){
+;	src/bootloader.c:66: void init_pin_input(void){
 ;	-----------------------------------------
 ;	 function init_pin_input
 ;	-----------------------------------------
 _init_pin_input:
-;	src/bootloader.c:85: SFRPAGE = 0x00;
-	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:86: P2_1 = 0;   // ensure IR output starts LOW (LED off)
+;	src/bootloader.c:67: P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
+	orl	_P2MDIN,#0x06
+;	src/bootloader.c:68: P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
+	orl	_P2MDOUT,#0x06
+;	src/bootloader.c:69: P2SKIP |= 0b_0000_0010;
+	orl	_P2SKIP,#0x02
+;	src/bootloader.c:70: P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
+	orl	_P3MDIN,#0x01
+;	src/bootloader.c:71: P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin
+	anl	_P3MDOUT,#0xFE
+;	src/bootloader.c:72: P3 |= 0b_0000_0001;
+	orl	_P3,#0x01
+;	src/bootloader.c:73: XBR2 &= ~0x80;
+	anl	_XBR2,#0x7F
+;	src/bootloader.c:74: XBR2 |= 0x40;
+	orl	_XBR2,#0x40
+;	src/bootloader.c:75: P2_1 = 0;
 	clr	_P2_1
 	ret
 	rseg R_CSEG
