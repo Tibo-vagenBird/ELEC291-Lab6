@@ -47,9 +47,9 @@
 // There is also a picture that shows how the LCD is attached to the ATMega328P.
 
 // value of RA and RB
-#define RA 			9841
-#define RB			9811
-#define CA			1.11F
+#define RA 			9811
+#define RB			9847
+#define CA			0.9775F
 #define LA			0.269625737298F  // adjust to your actual value
 
 volatile uint16_t t1_overflow_count = 0;
