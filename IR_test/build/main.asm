@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 18:13:03 2026
+; This file was generated Sun Mar 08 19:46:33 2026
 ;--------------------------------------------------------
 $name main
 $optc51 --model-small
@@ -541,7 +541,9 @@ _main:
 	lcall	_init_pin_input
 ;	src/main.c:18: TIMER0_Init();
 	lcall	_TIMER0_Init
-;	src/main.c:20: while(1){
+;	src/main.c:19: TIMER2_Init();
+	lcall	_TIMER2_Init
+;	src/main.c:21: while(1){
 L002002?:
 	sjmp	L002002?
 	rseg R_CSEG

@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 18:13:03 2026
+; This file was generated Sun Mar 08 19:51:59 2026
 ;--------------------------------------------------------
 $name bootloader
 $optc51 --model-small
@@ -594,10 +594,10 @@ L002004?:
 ;	 function init_pin_input
 ;	-----------------------------------------
 _init_pin_input:
-;	src/bootloader.c:67: P2MDIN |= 0b_0000_0010; // enable p2.1 to be digital pin
-	orl	_P2MDIN,#0x02
-;	src/bootloader.c:68: P2MDOUT |= 0b_0000_0010; // enable p2.1 to be output pin 
-	orl	_P2MDOUT,#0x02
+;	src/bootloader.c:67: P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
+	orl	_P2MDIN,#0x06
+;	src/bootloader.c:68: P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
+	orl	_P2MDOUT,#0x06
 ;	src/bootloader.c:69: P2SKIP |= 0b_0000_0010;
 	orl	_P2SKIP,#0x02
 ;	src/bootloader.c:70: XBR2 |= 0x40;

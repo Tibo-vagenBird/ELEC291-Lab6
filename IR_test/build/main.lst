@@ -1,7 +1,7 @@
 0000              1   ;--------------------------------------------------------
 0000              2   ; File Created by C51
 0000              3   ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-0000              4   ; This file was generated Sun Mar 08 18:13:03 2026
+0000              4   ; This file was generated Sun Mar 08 19:46:33 2026
 0000              5   ;--------------------------------------------------------
                   5   $name main
                   6   $optc51 --model-small
@@ -541,15 +541,17 @@
 0000 120000     541            lcall   _init_pin_input
 0003            542   ;        src/main.c:18: TIMER0_Init();
 0003 120000     543            lcall   _TIMER0_Init
-0006            544   ;        src/main.c:20: while(1){
-0006            545   L002002?:
-0006 8000       546            sjmp    L002002?
-0008            547            rseg R_CSEG
-0008            548   
-0000            549            rseg R_XINIT
-0000            550   
-0000            551            rseg R_CONST
+0006            544   ;        src/main.c:19: TIMER2_Init();
+0006 120000     545            lcall   _TIMER2_Init
+0009            546   ;        src/main.c:21: while(1){
+0009            547   L002002?:
+0009 8000       548            sjmp    L002002?
+000B            549            rseg R_CSEG
+000B            550   
+0000            551            rseg R_XINIT
 0000            552   
-0003            553            CSEG
-0003            554   
-0003            555   end
+0000            553            rseg R_CONST
+0000            554   
+0003            555            CSEG
+0003            556   
+0003            557   end

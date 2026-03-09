@@ -16,7 +16,8 @@
 void main (){
 	init_pin_input();
 	TIMER0_Init();
-
+	TIMER2_Init();
+	
 	while(1){
 
 	}

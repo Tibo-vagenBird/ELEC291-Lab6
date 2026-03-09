@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 18:11:02 2026
+; This file was generated Sun Mar 08 19:51:59 2026
 ;--------------------------------------------------------
 $name timer
 $optc51 --model-small
@@ -23,9 +23,11 @@ $optc51 --model-small
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
+	public _Timer2_ISR
 	public _Timer0_ISR
 	public _timer0_isr_ticks
 	public _TIMER0_Init
+	public _TIMER2_Init
 ;--------------------------------------------------------
 ; Special Function Registers
 ;--------------------------------------------------------
@@ -516,6 +518,8 @@ _timer0_isr_ticks:
 ;--------------------------------------------------------
 	CSEG at 0x000b
 	ljmp	_Timer0_ISR
+	CSEG at 0x002b
+	ljmp	_Timer2_ISR
 ;--------------------------------------------------------
 ; global & static initialisations
 ;--------------------------------------------------------
@@ -579,12 +583,95 @@ _TIMER0_Init:
 ;	 function Timer0_ISR
 ;	-----------------------------------------
 _Timer0_ISR:
-;	src/timer.c:27: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+;	src/timer.c:27: TR0 = 0;
+	clr	_TR0
+;	src/timer.c:28: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
 	mov	_TH0,#0xFC
-;	src/timer.c:28: TL0 = TIMER0_RELOAD & 0xFF;
+;	src/timer.c:29: TL0 = TIMER0_RELOAD & 0xFF;
 	mov	_TL0,#0x4C
-;	src/timer.c:29: P2_1 = !P2_1;
+;	src/timer.c:30: P2_1 = !P2_1;
 	cpl	_P2_1
+;	src/timer.c:31: TR0 = 1;
+	setb	_TR0
+	reti
+;	eliminated unneeded push/pop psw
+;	eliminated unneeded push/pop dpl
+;	eliminated unneeded push/pop dph
+;	eliminated unneeded push/pop b
+;	eliminated unneeded push/pop acc
+;------------------------------------------------------------
+;Allocation info for local variables in function 'TIMER2_Init'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:34: void TIMER2_Init(void){
+;	-----------------------------------------
+;	 function TIMER2_Init
+;	-----------------------------------------
+_TIMER2_Init:
+;	src/timer.c:35: TR2 = 0;
+	clr	_TR2
+;	src/timer.c:36: CKCON0 |= 0b_0011_0000; // set Timer 2 to be using sysclk
+	orl	_CKCON0,#0x30
+;	src/timer.c:37: T2SPLIT = 0;
+	clr	_T2SPLIT
+;	src/timer.c:38: TMR2RLH = (TIMER2_RELOAD >> 8) &0xFF;
+	mov	_TMR2RLH,#0xB5
+;	src/timer.c:39: TMR2RLL = TIMER2_RELOAD & 0xFF;
+	mov	_TMR2RLL,#0xFC
+;	src/timer.c:40: TMR2H = (TIMER2_RELOAD >> 8) &0xFF;
+	mov	_TMR2H,#0xB5
+;	src/timer.c:41: TMR2L = TIMER2_RELOAD & 0xFF;
+	mov	_TMR2L,#0xFC
+;	src/timer.c:44: ET2 = 1;
+	setb	_ET2
+;	src/timer.c:45: EA = 1;
+	setb	_EA
+;	src/timer.c:46: TR2 = 1; // start timer 2
+	setb	_TR2
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'Timer2_ISR'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:49: void Timer2_ISR(void) __interrupt (5)
+;	-----------------------------------------
+;	 function Timer2_ISR
+;	-----------------------------------------
+_Timer2_ISR:
+;	src/timer.c:51: TR2 = 0; // stop timer 2
+	clr	_TR2
+;	src/timer.c:52: ET2 = 0; // disable interrupt
+	clr	_ET2
+;	src/timer.c:53: TF2H = 0;
+	clr	_TF2H
+;	src/timer.c:55: P2_2 = !P2_2; // toggle p2.2 for oscilloscope debugging purpose
+	cpl	_P2_2
+;	src/timer.c:57: if (TR0)
+;	src/timer.c:59: TR0 = 0;
+	jbc	_TR0,L005007?
+	sjmp	L005002?
+L005007?:
+;	src/timer.c:60: ET0 = 0;
+	clr	_ET0
+;	src/timer.c:61: P2_1 = 0;
+	clr	_P2_1
+	sjmp	L005003?
+L005002?:
+;	src/timer.c:65: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+	mov	_TH0,#0xFC
+;	src/timer.c:66: TL0 = TIMER0_RELOAD & 0xFF;
+	mov	_TL0,#0x4C
+;	src/timer.c:67: TF0 = 0;
+	clr	_TF0
+;	src/timer.c:68: ET0 = 1;
+	setb	_ET0
+;	src/timer.c:69: TR0 = 1;
+	setb	_TR0
+L005003?:
+;	src/timer.c:72: ET2 = 1;
+	setb	_ET2
+;	src/timer.c:73: TR2 = 1;
+	setb	_TR2
 	reti
 ;	eliminated unneeded push/pop psw
 ;	eliminated unneeded push/pop dpl

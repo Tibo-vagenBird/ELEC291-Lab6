@@ -64,8 +64,8 @@ char _c51_external_startup (void)
 
 // init p2.2 and p2.3 as input pin
 void init_pin_input(void){
-    P2MDIN |= 0b_0000_0010; // enable p2.1 to be digital pin
-    P2MDOUT |= 0b_0000_0010; // enable p2.1 to be output pin 
+    P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
+    P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
     P2SKIP |= 0b_0000_0010;
     XBR2 |= 0x40;
 	P2_1 = 0;

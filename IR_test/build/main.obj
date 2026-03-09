@@ -21,11 +21,11 @@ R_IXSEG,xdata,0000,NO
 R_ISEG,idata,0000,NO
 R_HOME,code,0000,NO
 R_XINIT,code,0000,NO
-R_CSEG,code,0008,NO
+R_CSEG,code,000B,NO
 </SEGMENTS>
 
 <LOCALS>
-L002002?,R_CSEG,0006,0000
+L002002?,R_CSEG,0009,0000
 </LOCALS>
 
 <PUBLICS>
@@ -34,6 +34,7 @@ _main,R_CSEG,0000,0000
 
 <EXTERNALS>
 _TIMER0_Init,any,0000,0000
+_TIMER2_Init,any,0000,0000
 _init_pin_input,any,0000,0000
 _crt0,any,0000,0000
 </EXTERNALS>
@@ -69,6 +70,7 @@ _crt0,any,0000,0000
 <CODE R_CSEG>
 12 addr16(_init_pin_input;)  
 12 addr16(_TIMER0_Init;)  
+12 addr16(_TIMER2_Init;)  
 80 rel2(L002002?;)
 </CODE>
 

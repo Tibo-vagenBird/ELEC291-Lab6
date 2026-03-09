@@ -32,10 +32,13 @@ void Timer0_ISR(void) __interrupt (1)
 }
 
 void TIMER2_Init(void){
+	TR2 = 0;
 	CKCON0 |= 0b_0011_0000; // set Timer 2 to be using sysclk
-	TMR2CN0 = 0x00;
+	T2SPLIT = 0;
 	TMR2RLH = (TIMER2_RELOAD >> 8) &0xFF;
 	TMR2RLL = TIMER2_RELOAD & 0xFF;
+	TMR2H = (TIMER2_RELOAD >> 8) &0xFF;
+	TMR2L = TIMER2_RELOAD & 0xFF;
 
 	// enable interrupt
 	ET2 = 1;
@@ -47,10 +50,27 @@ void Timer2_ISR(void) __interrupt (5)
 {
 	TR2 = 0; // stop timer 2
 	ET2 = 0; // disable interrupt
+	TF2H = 0;
 
+	P2_2 = !P2_2; // toggle p2.2 for oscilloscope debugging purpose
 	// toggle timer 0
-	ET0 = !ET0;
-	TR0 = !TR0;
+	if (TR0)
+    {
+        TR0 = 0;
+        ET0 = 0;
+        P2_1 = 0;
+    }
+    else
+    {
+        TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+        TL0 = TIMER0_RELOAD & 0xFF;
+        TF0 = 0;
+        ET0 = 1;
+        TR0 = 1;
+    }
+
+	ET2 = 1;
+	TR2 = 1;
 }
 
 /*
