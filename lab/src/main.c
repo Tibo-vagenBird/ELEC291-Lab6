@@ -42,7 +42,8 @@
 // V0           2k+GND
 // VCC          5V
 // GND          GND
-//
+// PD5 frequency in
+// PB2 IR receiver out pin
 // There is also a picture that shows how the LCD is attached to the ATMega328P.
 
 // value of RA and RB
@@ -50,6 +51,13 @@
 #define RB			9811
 #define CA			1.11F
 #define LA			0.269625737298F  // adjust to your actual value
+
+volatile uint16_t t1_overflow_count = 0;
+
+ISR(TIMER1_OVF_vect)
+{
+    t1_overflow_count++;
+}
 
 void Configure_Pins(void)
 {
@@ -74,7 +82,60 @@ void cal_capacitance (unsigned long F, float* capacitance) {
 	*capacitance = (*capacitance) * 1000;
 }
 
-volatile uint16_t t1_overflow_count = 0;
+// Reads PB2 using Timer0 (prescaler 64 -> 4 us/tick at 16 MHz).
+// Returns:
+//   0  if the measured period is ~552 us (138 ticks +/- 15)
+//   1  if PB2 is constant HIGH (no LOW within ~1 ms)
+// Prints measured ticks over UART for debugging.
+uint8_t read_pb2_bit(void)
+{
+    uint8_t ticks;
+    char dbg[32];
+
+    // PB2 as input, no pull-up (IR receiver drives the line)
+    DDRB  &= ~(1 << DDB2);
+    PORTB &= ~(1 << PORTB2);
+
+    // Timer0: normal mode, prescaler 64 -> 4 us per tick
+    TCCR0A = 0x00;
+    TCCR0B = (1 << CS01) | (1 << CS00);
+    TCNT0  = 0;
+
+    // Wait for a LOW edge; timeout at 250 ticks (~1 ms) -> constant HIGH
+    while (PINB & (1 << PINB2)) {
+        if (TCNT0 >= 250) {
+            TCCR0B = 0x00;
+            writeString("PB2: always HIGH\n");
+            return 1;
+        }
+    }
+
+    // Synchronise: wait for the next rising edge before timing
+    while (!(PINB & (1 << PINB2)));
+    TCNT0 = 0; // restart count at the rising edge
+
+    // Measure HIGH half (rising -> falling)
+    while (PINB & (1 << PINB2)) {
+        if (TCNT0 >= 200) { TCCR0B = 0x00; return 1; }
+    }
+
+    // Measure LOW half (falling -> rising)
+    while (!(PINB & (1 << PINB2))) {
+        if (TCNT0 >= 200) { TCCR0B = 0x00; return 1; }
+    }
+
+    ticks = TCNT0; // full period in 4 us ticks
+    TCCR0B = 0x00; // stop Timer0
+
+    // Debug: print measured period
+    sprintf(dbg, "PB2 ticks: %u (%u us)\n", ticks, (uint16_t)ticks * 4);
+    writeString(dbg);
+
+    // 552 us / 4 us = 138 ticks; accept +/- 15 ticks (60 us)
+    if (ticks >= 123 && ticks <= 153) return 0;
+
+    return 1;
+}
 
 static uint32_t count_t1_rising_edges_1s(void)
 {
@@ -144,8 +205,13 @@ int main( void )
 {
 	char buff[17];
 	char uart_buff[32];
+	char ir_buf[32];
 	uint32_t pulse_count;
+	uint8_t ir_addr, ir_cmd;
+	int8_t  nec_result;
     float capacitance;
+    float resistance;
+    uint8_t c_or_r;
 
     Configure_Pins();
 	LCD_4BIT();
@@ -161,16 +227,22 @@ int main( void )
 	{
 		pulse_count = count_t1_rising_edges_1s();
         cal_capacitance(pulse_count, &capacitance);
-		sprintf(uart_buff, "freq: %lu %f\n", pulse_count, capacitance);
+        cal_resistence(pulse_count, &resistance);
+
+        c_or_r = read_pb2_bit();
+
+		sprintf(uart_buff, "freq: %lu %f c_or_r: %u\n", pulse_count, capacitance, c_or_r);
 		writeString(uart_buff);
-        sprintf(buff, "%.2f", capacitance);
-        LCDprint("Capacitance:", 1, 1);
+        if (c_or_r == 0) {
+            sprintf(buff, "%.2f", capacitance);
+            LCDprint("Capacitance:", 1, 1);
+        }
+        else {
+            sprintf(buff, "%.2f", resistance);
+            LCDprint("Resistance:", 1, 1);
+        }
         LCDprint(buff, 2, 1);
 
-        // pulse_count now holds:
-        // number of rising edges on T1 during ~1 second
-
-        // Put breakpoint here, print by UART, or show on LEDs/LCD
         _delay_ms(500);
 	}
 }

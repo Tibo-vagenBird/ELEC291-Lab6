@@ -15,27 +15,43 @@ R_CONST,code,0000,NO
 rbank0,data,0000,OV
 R_PSEG,xdata,0000,NO
 R_DINIT,code,0000,NO
-R_DSEG,data,0000,NO
+R_DSEG,data,0001,NO
 R_OSEG,data,0000,OV
 R_IXSEG,xdata,0000,NO
 R_ISEG,idata,0000,NO
 R_HOME,code,0000,NO
 R_XINIT,code,0000,NO
-R_CSEG,code,0008,NO
+R_CSEG,code,0111,NO
 </SEGMENTS>
 
 <LOCALS>
-L002002?,R_CSEG,0006,0000
+_ir_carrier_on,R_CSEG,0000,0000
+L007010?,R_CSEG,0065,0000
+L006002?,R_CSEG,0058,0000
+_nec_send_byte,R_CSEG,005E,0000
+L010002?,R_CSEG,0100,0000
+L007005?,R_CSEG,007E,0000
+L007001?,R_CSEG,0062,0000
+_nec_send_bit,R_CSEG,0043,0000
+_ir_carrier_off,R_CSEG,000D,0000
+_ir_space,R_CSEG,002D,0000
+_ir_burst,R_CSEG,0014,0000
 </LOCALS>
 
 <PUBLICS>
-_main,R_CSEG,0000,0000
+_nec_transmit_PARM_2,R_DSEG,0000,0001
+_nec_repeat,R_CSEG,00BB,0000
+_main,R_CSEG,00D3,0000
+_nec_transmit,R_CSEG,007F,0000
 </PUBLICS>
 
 <EXTERNALS>
 _TIMER0_Init,any,0000,0000
+_Timer3_Init,any,0000,0000
 _init_pin_input,any,0000,0000
 _crt0,any,0000,0000
+_Timer3us,any,0000,0000
+_waitms,any,0000,0000
 </EXTERNALS>
 
 <CODE AT 0000>
@@ -67,9 +83,121 @@ _crt0,any,0000,0000
 </CODE>
 
 <CODE R_CSEG>
+C2 8D
+75 8C FC
+75 8A 4C
+D2 A9
+D2 8C
+22
+C2 8C
+C2 A9
+C2 A1
+22
+AA 82
+AB 83
+C0 02
+C0 03
+12 addr16(_ir_carrier_on;)  
+D0 03
+D0 02
+8A 82
+8B 83
+12 addr16(_Timer3us;)  
+02 addr16(_ir_carrier_off;)  
+AA 82
+AB 83
+C0 02
+C0 03
+12 addr16(_ir_carrier_off;)  
+D0 03
+D0 02
+8A 82
+8B 83
+02 addr16(_Timer3us;)  
+AA 82
+90 02 32
+C0 02
+12 addr16(_ir_burst;)  
+D0 02
+EA
+60 rel2(L006002?;)
+90 06 98
+02 addr16(_ir_space;)  
+90 02 33
+02 addr16(_ir_space;)  
+AA 82
+7B 00
+BB 08 rel3(L007010?;)
+50 rel2(L007005?;)
+74 01
+5A
+F5 82
+C0 02
+C0 03
+12 addr16(_nec_send_bit;)  
+D0 03
+D0 02
+EA
+C3
+13
+FA
+0B
+80 rel2(L007001?;)
+22
+AA 82
+90 23 28
+C0 02
+12 addr16(_ir_burst;)  
+90 11 94
+12 addr16(_ir_space;)  
+D0 02
+8A 82
+C0 02
+12 addr16(_nec_send_byte;)  
+D0 02
+EA
+F4
+F5 82
+12 addr16(_nec_send_byte;)  
+85 data8(_nec_transmit_PARM_2;) 82
+12 addr16(_nec_send_byte;)  
+E5 data8(_nec_transmit_PARM_2;)
+F4
+F5 82
+12 addr16(_nec_send_byte;)  
+90 02 32
+12 addr16(_ir_burst;)  
+90 02 33
+02 addr16(_ir_space;)  
+90 23 28
+12 addr16(_ir_burst;)  
+90 08 CA
+12 addr16(_ir_space;)  
+90 02 32
+12 addr16(_ir_burst;)  
+90 02 33
+02 addr16(_ir_space;)  
 12 addr16(_init_pin_input;)  
 12 addr16(_TIMER0_Init;)  
-80 rel2(L002002?;)
+12 addr16(_Timer3_Init;)  
+75 data8(_nec_transmit_PARM_2;) 0C
+75 82 00
+12 addr16(_nec_transmit;)  
+90 00 28
+12 addr16(_waitms;)  
+12 addr16(_nec_repeat;)  
+90 00 28
+12 addr16(_waitms;)  
+12 addr16(_nec_repeat;)  
+90 00 28
+12 addr16(_waitms;)  
+12 addr16(_nec_repeat;)  
+75 data8(_nec_transmit_PARM_2;) 0C
+75 82 00
+12 addr16(_nec_transmit;)  
+90 00 C8
+12 addr16(_waitms;)  
+80 rel2(L010002?;)
 </CODE>
 
 <CODE R_CSEG>

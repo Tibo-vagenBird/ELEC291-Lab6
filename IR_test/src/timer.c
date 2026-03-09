@@ -1,5 +1,6 @@
 #include <EFM8LB1.h>
 #include "timer.h"
+#include "config.h"
 
 volatile unsigned long timer0_isr_ticks = 0;
 
@@ -53,32 +54,36 @@ void Timer2_ISR(void) __interrupt (5)
 	TR0 = !TR0;
 }
 
-/*
-// Uses Timer3 to delay <us> micro-seconds. 
-void Timer3us(unsigned char us)
+// Configure Timer3 to overflow once per microsecond at SYSCLK = 72 MHz.
+// Must be called before Timer3us() or waitms().
+void Timer3_Init(void)
 {
-	unsigned char i;               // usec counter
-	
-	// The input for Timer 3 is selected as SYSCLK by setting T3ML (bit 6) of CKCON0:
-	CKCON0|=0b_0100_0000;
-	
-	TMR3RL = (-(SYSCLK)/1000000L); // Set Timer3 to overflow in 1us.
-	TMR3 = TMR3RL;                 // Initialize Timer3 for first overflow
-	
-	TMR3CN0 = 0x04;                 // Sart Timer3 and clear overflow flag
-	for (i = 0; i < us; i++)       // Count <us> overflows
-	{
-		while (!(TMR3CN0 & 0x80));  // Wait for overflow
-		TMR3CN0 &= ~(0x80);         // Clear overflow indicator
-	}
-	TMR3CN0 = 0 ;                   // Stop Timer3 and clear overflow flag
+	CKCON0 |= 0b_0100_0000;                        // T3ML=1: Timer3 clock = SYSCLK
+	TMR3RLH = (TIMER3_1US_RELOAD >> 8) & 0xFF;    // reload high byte
+	TMR3RLL =  TIMER3_1US_RELOAD       & 0xFF;    // reload low byte
+	TMR3H   = (TIMER3_1US_RELOAD >> 8) & 0xFF;    // preload counter
+	TMR3L   =  TIMER3_1US_RELOAD       & 0xFF;
+	TMR3CN0 = 0x00;                                // stop, clear flags
 }
 
-void waitms (unsigned int ms)
+// Delay approximately <us> microseconds using Timer3.
+// Timer3_Init() must be called once before using this function.
+void Timer3us(unsigned int us)
 {
-	unsigned int j;
-	unsigned char k;
-	for(j=0; j<ms; j++)
-		for (k=0; k<4; k++) Timer3us(250);
+	unsigned int i;
+	TMR3CN0 = 0x04;               // TR3=1: start Timer3
+	for (i = 0; i < us; i++)
+	{
+		while (!(TMR3CN0 & 0x80)); // wait for TF3H (overflow)
+		TMR3CN0 &= ~0x80;          // clear overflow flag
+	}
+	TMR3CN0 = 0x00;               // stop Timer3
 }
-*/
+
+// Delay approximately <ms> milliseconds.
+void waitms(unsigned int ms)
+{
+	unsigned int i;
+	for (i = 0; i < ms; i++)
+		Timer3us(1000);
+}

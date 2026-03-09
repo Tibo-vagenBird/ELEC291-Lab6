@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 18:11:02 2026
+; This file was generated Sun Mar 08 19:32:19 2026
 ;--------------------------------------------------------
 $name timer
 $optc51 --model-small
@@ -23,9 +23,14 @@ $optc51 --model-small
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
+	public _Timer2_ISR
+	public _TIMER2_Init
 	public _Timer0_ISR
 	public _timer0_isr_ticks
 	public _TIMER0_Init
+	public _Timer3_Init
+	public _Timer3us
+	public _waitms
 ;--------------------------------------------------------
 ; Special Function Registers
 ;--------------------------------------------------------
@@ -479,7 +484,7 @@ _timer0_isr_ticks:
 ;--------------------------------------------------------
 ; overlayable items in internal ram 
 ;--------------------------------------------------------
-	rseg R_OSEG
+	rseg	R_OSEG
 ;--------------------------------------------------------
 ; indirectly addressable internal ram data
 ;--------------------------------------------------------
@@ -516,6 +521,8 @@ _timer0_isr_ticks:
 ;--------------------------------------------------------
 	CSEG at 0x000b
 	ljmp	_Timer0_ISR
+	CSEG at 0x002b
+	ljmp	_Timer2_ISR
 ;--------------------------------------------------------
 ; global & static initialisations
 ;--------------------------------------------------------
@@ -526,7 +533,7 @@ _timer0_isr_ticks:
 ; data variables initialization
 ;--------------------------------------------------------
 	rseg R_DINIT
-;	src/timer.c:4: volatile unsigned long timer0_isr_ticks = 0;
+;	src/timer.c:5: volatile unsigned long timer0_isr_ticks = 0;
 	clr	a
 	mov	_timer0_isr_ticks,a
 	mov	(_timer0_isr_ticks + 1),a
@@ -541,56 +548,210 @@ _timer0_isr_ticks:
 ;Allocation info for local variables in function 'TIMER0_Init'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/timer.c:6: void TIMER0_Init(void)
+;	src/timer.c:7: void TIMER0_Init(void)
 ;	-----------------------------------------
 ;	 function TIMER0_Init
 ;	-----------------------------------------
 _TIMER0_Init:
 	using	0
-;	src/timer.c:8: TR0 = 0; // Stop Timer 0 during setup
+;	src/timer.c:9: TR0 = 0; // Stop Timer 0 during setup
 	clr	_TR0
-;	src/timer.c:9: TMOD &= 0b_1111_0000; // Set the bits of Timer/Counter 0 to zero
+;	src/timer.c:10: TMOD &= 0b_1111_0000; // Set the bits of Timer/Counter 0 to zero
 	anl	_TMOD,#0xF0
-;	src/timer.c:10: TMOD |= 0b_0000_0001; // Timer/Counter 0 used as a 16-bit timer
+;	src/timer.c:11: TMOD |= 0b_0000_0001; // Timer/Counter 0 used as a 16-bit timer
 	orl	_TMOD,#0x01
-;	src/timer.c:11: CKCON0 &= 0b_1111_1000; // Reset timer 0 setup
+;	src/timer.c:12: CKCON0 &= 0b_1111_1000; // Reset timer 0 setup
 	anl	_CKCON0,#0xF8
-;	src/timer.c:12: CKCON0 |= 0b_0000_0100;  // Timer 0 uses sysclk
+;	src/timer.c:13: CKCON0 |= 0b_0000_0100;  // Timer 0 uses sysclk
 	orl	_CKCON0,#0x04
-;	src/timer.c:14: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+;	src/timer.c:15: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
 	mov	_TH0,#0xFC
-;	src/timer.c:15: TL0 = TIMER0_RELOAD & 0xFF;
+;	src/timer.c:16: TL0 = TIMER0_RELOAD & 0xFF;
 	mov	_TL0,#0x4C
-;	src/timer.c:16: TF0 = 0; // Clear pending overflow flag
+;	src/timer.c:17: TF0 = 0; // Clear pending overflow flag
 	clr	_TF0
-;	src/timer.c:19: ET0 = 1;
+;	src/timer.c:20: ET0 = 1;
 	setb	_ET0
-;	src/timer.c:20: EA  = 1;
+;	src/timer.c:21: EA  = 1;
 	setb	_EA
-;	src/timer.c:21: TR0 = 1; // Start Timer 0
+;	src/timer.c:22: TR0 = 1; // Start Timer 0
 	setb	_TR0
 	ret
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'Timer0_ISR'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/timer.c:24: void Timer0_ISR(void) __interrupt (1)
+;	src/timer.c:25: void Timer0_ISR(void) __interrupt (1)
 ;	-----------------------------------------
 ;	 function Timer0_ISR
 ;	-----------------------------------------
 _Timer0_ISR:
-;	src/timer.c:27: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+;	src/timer.c:28: TR0 = 0;
+	clr	_TR0
+;	src/timer.c:29: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
 	mov	_TH0,#0xFC
-;	src/timer.c:28: TL0 = TIMER0_RELOAD & 0xFF;
+;	src/timer.c:30: TL0 = TIMER0_RELOAD & 0xFF;
 	mov	_TL0,#0x4C
-;	src/timer.c:29: P2_1 = !P2_1;
+;	src/timer.c:31: P2_1 = !P2_1;
 	cpl	_P2_1
+;	src/timer.c:32: TR0 = 1;
+	setb	_TR0
 	reti
 ;	eliminated unneeded push/pop psw
 ;	eliminated unneeded push/pop dpl
 ;	eliminated unneeded push/pop dph
 ;	eliminated unneeded push/pop b
 ;	eliminated unneeded push/pop acc
+;------------------------------------------------------------
+;Allocation info for local variables in function 'TIMER2_Init'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:35: void TIMER2_Init(void){
+;	-----------------------------------------
+;	 function TIMER2_Init
+;	-----------------------------------------
+_TIMER2_Init:
+;	src/timer.c:36: CKCON0 |= 0b_0011_0000; // set Timer 2 to be using sysclk
+	orl	_CKCON0,#0x30
+;	src/timer.c:37: TMR2CN0 = 0x00;
+	mov	_TMR2CN0,#0x00
+;	src/timer.c:38: TMR2RLH = (TIMER2_RELOAD >> 8) &0xFF;
+	mov	_TMR2RLH,#0xB5
+;	src/timer.c:39: TMR2RLL = TIMER2_RELOAD & 0xFF;
+	mov	_TMR2RLL,#0xFC
+;	src/timer.c:42: ET2 = 1;
+	setb	_ET2
+;	src/timer.c:43: EA = 1;
+	setb	_EA
+;	src/timer.c:44: TR2 = 1; // start timer 2
+	setb	_TR2
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'Timer2_ISR'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:47: void Timer2_ISR(void) __interrupt (5)
+;	-----------------------------------------
+;	 function Timer2_ISR
+;	-----------------------------------------
+_Timer2_ISR:
+;	src/timer.c:49: TR2 = 0; // stop timer 2
+	clr	_TR2
+;	src/timer.c:50: ET2 = 0; // disable interrupt
+	clr	_ET2
+;	src/timer.c:53: ET0 = !ET0;
+	cpl	_ET0
+;	src/timer.c:54: TR0 = !TR0;
+	cpl	_TR0
+	reti
+;	eliminated unneeded push/pop psw
+;	eliminated unneeded push/pop dpl
+;	eliminated unneeded push/pop dph
+;	eliminated unneeded push/pop b
+;	eliminated unneeded push/pop acc
+;------------------------------------------------------------
+;Allocation info for local variables in function 'Timer3_Init'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:59: void Timer3_Init(void)
+;	-----------------------------------------
+;	 function Timer3_Init
+;	-----------------------------------------
+_Timer3_Init:
+;	src/timer.c:61: CKCON0 |= 0b_0100_0000;                        // T3ML=1: Timer3 clock = SYSCLK
+	orl	_CKCON0,#0x40
+;	src/timer.c:62: TMR3RLH = (TIMER3_1US_RELOAD >> 8) & 0xFF;    // reload high byte
+	mov	_TMR3RLH,#0xFF
+;	src/timer.c:63: TMR3RLL =  TIMER3_1US_RELOAD       & 0xFF;    // reload low byte
+	mov	_TMR3RLL,#0xB8
+;	src/timer.c:64: TMR3H   = (TIMER3_1US_RELOAD >> 8) & 0xFF;    // preload counter
+	mov	_TMR3H,#0xFF
+;	src/timer.c:65: TMR3L   =  TIMER3_1US_RELOAD       & 0xFF;
+	mov	_TMR3L,#0xB8
+;	src/timer.c:66: TMR3CN0 = 0x00;                                // stop, clear flags
+	mov	_TMR3CN0,#0x00
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'Timer3us'
+;------------------------------------------------------------
+;us                        Allocated to registers r2 r3 
+;i                         Allocated to registers r4 r5 
+;------------------------------------------------------------
+;	src/timer.c:71: void Timer3us(unsigned int us)
+;	-----------------------------------------
+;	 function Timer3us
+;	-----------------------------------------
+_Timer3us:
+	mov	r2,dpl
+	mov	r3,dph
+;	src/timer.c:74: TMR3CN0 = 0x04;               // TR3=1: start Timer3
+	mov	_TMR3CN0,#0x04
+;	src/timer.c:75: for (i = 0; i < us; i++)
+	mov	r4,#0x00
+	mov	r5,#0x00
+L007004?:
+	clr	c
+	mov	a,r4
+	subb	a,r2
+	mov	a,r5
+	subb	a,r3
+	jnc	L007007?
+;	src/timer.c:77: while (!(TMR3CN0 & 0x80)); // wait for TF3H (overflow)
+L007001?:
+	mov	a,_TMR3CN0
+	jnb	acc.7,L007001?
+;	src/timer.c:78: TMR3CN0 &= ~0x80;          // clear overflow flag
+	anl	_TMR3CN0,#0x7F
+;	src/timer.c:75: for (i = 0; i < us; i++)
+	inc	r4
+	cjne	r4,#0x00,L007004?
+	inc	r5
+	sjmp	L007004?
+L007007?:
+;	src/timer.c:80: TMR3CN0 = 0x00;               // stop Timer3
+	mov	_TMR3CN0,#0x00
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'waitms'
+;------------------------------------------------------------
+;ms                        Allocated to registers r2 r3 
+;i                         Allocated to registers r4 r5 
+;------------------------------------------------------------
+;	src/timer.c:84: void waitms(unsigned int ms)
+;	-----------------------------------------
+;	 function waitms
+;	-----------------------------------------
+_waitms:
+	mov	r2,dpl
+	mov	r3,dph
+;	src/timer.c:87: for (i = 0; i < ms; i++)
+	mov	r4,#0x00
+	mov	r5,#0x00
+L008001?:
+	clr	c
+	mov	a,r4
+	subb	a,r2
+	mov	a,r5
+	subb	a,r3
+	jnc	L008005?
+;	src/timer.c:88: Timer3us(1000);
+	mov	dptr,#0x03E8
+	push	ar2
+	push	ar3
+	push	ar4
+	push	ar5
+	lcall	_Timer3us
+	pop	ar5
+	pop	ar4
+	pop	ar3
+	pop	ar2
+;	src/timer.c:87: for (i = 0; i < ms; i++)
+	inc	r4
+	cjne	r4,#0x00,L008001?
+	inc	r5
+	sjmp	L008001?
+L008005?:
+	ret
 	rseg R_CSEG
 
 	rseg R_XINIT

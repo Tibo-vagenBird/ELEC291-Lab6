@@ -5,16 +5,16 @@ Modules linked:
    'crt0' from 'D:/CrossIDE/Call51/LiB/Small/libc51f.lib'
 
 Memory use per module linked:
-C:00047 D:004 I:000 B:000 X:00000 - build/timer
-C:00008 D:000 I:000 B:000 X:00000 - build/main
+C:00180 D:004 I:000 B:000 X:00000 - build/timer
+C:00273 D:001 I:000 B:000 X:00000 - build/main
 C:00086 D:000 I:000 B:000 X:00000 - build/bootloader
 C:00113 D:000 I:000 B:000 X:00000 - crt0
-C:00007 D:000 I:000 B:000 X:00000 - ABSOLUTE
+C:00010 D:000 I:000 B:000 X:00000 - ABSOLUTE
 ------------------------------------------------------
-C:00261 D:004 I:000 B:000 X:00000 - Totals
+C:00662 D:005 I:000 B:000 X:00000 - Totals
 
 INTERMAL RAM map (see legend below):
-00: 0 0 0 0 0 0 0 0 a a a a . . . . 
+00: 0 0 0 0 0 0 0 0 a b b b b . . . 
 10: . . . . . . . . . . . . . . . . 
 20: . . . . . . . . . . . . . . . . 
 30: . . . . . . . . . . . . . . . . 
@@ -37,7 +37,8 @@ Legend:
 	2: Register bank 2
 	3: Register bank 3
 	B: bits (see 'BIT map' below)
-	a: build/timer:R_DSEG
+	a: build/main:R_DSEG
+	b: build/timer:R_DSEG
 
 BIT map:
 00: . . . . . . . . . . . . . . . . 
@@ -50,7 +51,7 @@ BIT map:
 70: . . . . . . . . . . . . . . . . 
 
 CODE usage map:
-0000: 248 013 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
+0000: 229 256 177 000 000 000 000 000 000 000 000 000 000 000 000 000 
 1000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 2000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 3000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
@@ -66,7 +67,7 @@ C000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
 D000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 E000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 F000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
-Total: 261 bytes
+Total: 662 bytes
 
 XDATA usage map:
 0000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
@@ -91,10 +92,10 @@ Base Segments:
    BIT_BANK=D:0000, size=0000
    R_BSEG=B:0000, size=0000
    R_CONST=C:0000, size=0000
-   R_CSEG=C:0089, size=0084
-   R_DINIT=C:007F, size=0009
-   R_DSEG=D:0000, size=0004
-   R_GSINIT=C:000E, size=0071
+   R_CSEG=C:009F, size=0212
+   R_DINIT=C:000E, size=0009
+   R_DSEG=D:0000, size=0005
+   R_GSINIT=C:002E, size=0071
    R_HOME=C:0000, size=0000
    R_ISEG=I:0000, size=0000
    R_IXSEG=X:0000, size=0000
@@ -105,25 +106,26 @@ Base Segments:
    rbank0=D:0000, size=0008
 
 Module Segments:
-   CSEG=C:0000, size=0007
-   build/bootloader:R_CSEG=C:00B7, size=0056
-   build/main:R_CSEG=C:00AF, size=0008
-   build/timer:R_CSEG=C:0089, size=0026
-   build/timer:R_DINIT=C:007F, size=0009
-   build/timer:R_DSEG=D:0008, size=0004
-   crt0:R_GSINIT=C:000E, size=0071
+   CSEG=C:0000, size=000A
+   build/bootloader:R_CSEG=C:025B, size=0056
+   build/main:R_CSEG=C:014A, size=0111
+   build/main:R_DSEG=D:0008, size=0001
+   build/timer:R_CSEG=C:009F, size=00AB
+   build/timer:R_DINIT=C:000E, size=0009
+   build/timer:R_DSEG=D:0009, size=0004
+   crt0:R_GSINIT=C:002E, size=0071
 
 Public symbols:
    _R_BSEG_size=L:0000
    _R_BSEG_start=L:0000
    _R_CONST_size=L:0000
    _R_CONST_start=L:0000
-   _R_CSEG_size=L:0084
-   _R_CSEG_start=L:0089
+   _R_CSEG_size=L:0212
+   _R_CSEG_start=L:009F
    _R_DINIT_size=L:0009
-   _R_DINIT_start=L:007F
+   _R_DINIT_start=L:000E
    _R_GSINIT_size=L:0071
-   _R_GSINIT_start=L:000E
+   _R_GSINIT_start=L:002E
    _R_HOME_size=L:0000
    _R_HOME_start=L:0000
    _R_ISEG_size=L:0000
@@ -138,28 +140,53 @@ Public symbols:
    _R_XINIT_start=L:0000
    _R_XSEG_size=L:0000
    _R_XSEG_start=L:0000
-   _TIMER0_Init=C:0089
-   _Timer0_ISR=C:00A6
-   __c51_external_startup=C:00B7
+   _TIMER0_Init=C:009F
+   _TIMER2_Init=C:00C9
+   _Timer0_ISR=C:00BC
+   _Timer2_ISR=C:00DC
+   _Timer3_Init=C:00E5
+   _Timer3us=C:00F8
+   __c51_external_startup=C:025B
+   _build/main_R_DSEG_size=L:0001
+   _build/main_R_DSEG_start=L:0008
    _build/timer_R_DSEG_size=L:0004
-   _build/timer_R_DSEG_start=L:0008
-   _crt0=C:000E
-   _dummy_name_crt0=C:010D
-   _init_pin_input=C:00FE
-   _main=C:00AF
-   _stack_start=L:000C
-   _timer0_isr_ticks=D:0008
+   _build/timer_R_DSEG_start=L:0009
+   _crt0=C:002E
+   _dummy_name_crt0=C:02B1
+   _init_pin_input=C:02AB
+   _main=C:021D
+   _nec_repeat=C:0205
+   _nec_transmit=C:01C9
+   _nec_transmit_PARM_2=D:0008
+   _stack_start=L:000D
+   _timer0_isr_ticks=D:0009
+   _waitms=C:011D
 
 Local symbols:
-   build/bootloader:L002001?=C:00D5
-   build/bootloader:L002004?=C:00E0
-   build/main:L002002?=C:00B5
-   crt0:PClearLoop?done?=C:0077
-   crt0:PClearLoop?repeat?=C:0069
-   crt0:XClearLoop?done?=C:005F
-   crt0:XClearLoop?repeat?=C:0051
-   crt0:XInitLoop?done?=C:0047
-   crt0:XInitLoop?repeat?=C:0027
-   crt0:__c51_init_data=C:001B
-   crt0:__c51_program_startup=C:007A
-   crt0:forever?home?=C:007D
+   build/bootloader:L002001?=C:0279
+   build/bootloader:L002004?=C:0284
+   build/main:L006002?=C:01A2
+   build/main:L007001?=C:01AC
+   build/main:L007005?=C:01C8
+   build/main:L007010?=C:01AF
+   build/main:L010002?=C:024A
+   build/main:_ir_burst=C:015E
+   build/main:_ir_carrier_off=C:0157
+   build/main:_ir_carrier_on=C:014A
+   build/main:_ir_space=C:0177
+   build/main:_nec_send_bit=C:018D
+   build/main:_nec_send_byte=C:01A8
+   build/timer:L007001?=C:010A
+   build/timer:L007004?=C:0103
+   build/timer:L007007?=C:0119
+   build/timer:L008001?=C:0125
+   build/timer:L008005?=C:0149
+   crt0:PClearLoop?done?=C:0097
+   crt0:PClearLoop?repeat?=C:0089
+   crt0:XClearLoop?done?=C:007F
+   crt0:XClearLoop?repeat?=C:0071
+   crt0:XInitLoop?done?=C:0067
+   crt0:XInitLoop?repeat?=C:0047
+   crt0:__c51_init_data=C:003B
+   crt0:__c51_program_startup=C:009A
+   crt0:forever?home?=C:009D

@@ -51,23 +51,38 @@ char _c51_external_startup (void)
 	#endif
 
 	SFRPAGE = 0x00;
-	P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output (P0.4)
-					// UART1 TX P0.6
+
+	// ---- Port output mode: push-pull pins ----
+	// P0.2 = UART0 TX, P0.4 = UART1 TX, P2.1 = IR carrier output
+	P0MDOUT |= 0x14;           // P0.2 and P0.4 push-pull (UART TX lines)
+	P2MDOUT |= 0b_0000_0010;   // P2.1 push-pull (IR 38 kHz output)
+
+	// ---- Port digital input mode ----
+	P2MDIN  |= 0b_0000_0010;   // P2.1 digital (not analog)
+
+	// ---- Crossbar skip: pins used as GPIO must be skipped ----
+	// P0SKIP: skip P0.0, P0.1, P0.6, P0.7 (unavailable/unused)
+	// P2SKIP: skip P2.1 so crossbar never routes a peripheral to it
 	P0SKIP = 0xC3;
-	XBR0     = 0x01; // Enable UART0 on P0.4(TX) and P0.5(RX)
-	XBR1     = 0x00;
-	XBR2     = 0x41; // Enable crossbar (bit6), enable UART1 (bit0) on 
+	P2SKIP |= 0b_0000_0010;
+
+	// ---- Enable crossbar AFTER all skip/mode registers are set ----
+	// UART0 -> P0.2(TX), P0.3(RX)
+	// UART1 -> P0.4(TX), P0.5(RX)
+	XBR0 = 0x01;               // UART0 enable
+	XBR1 = 0x00;
+	XBR2 = 0x41;               // XBARE (bit6) + UART1EN (bit0)
+
 	SFRPAGE = 0x00;
 
 	return 0;
 }
 
-// init p2.2 and p2.3 as input pin
+// Initialize P2.1 as the IR output pin (push-pull digital output, driven low).
+// P2MDOUT, P2MDIN, and P2SKIP are already set in _c51_external_startup before
+// the crossbar was enabled, so only the initial pin state is set here.
 void init_pin_input(void){
-    P2MDIN |= 0b_0000_0010; // enable p2.1 to be digital pin
-    P2MDOUT |= 0b_0000_0010; // enable p2.1 to be output pin 
-    P2SKIP |= 0b_0000_0010;
-    XBR2 |= 0x40;
-	P2_1 = 0;
+	SFRPAGE = 0x00;
+	P2_1 = 0;   // ensure IR output starts LOW (LED off)
 }
 

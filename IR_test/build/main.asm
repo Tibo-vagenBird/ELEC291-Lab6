@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 18:13:03 2026
+; This file was generated Sun Mar 08 19:32:19 2026
 ;--------------------------------------------------------
 $name main
 $optc51 --model-small
@@ -24,6 +24,9 @@ $optc51 --model-small
 ; Public variables in this module
 ;--------------------------------------------------------
 	public _main
+	public _nec_repeat
+	public _nec_transmit
+	public _nec_transmit_PARM_2
 ;--------------------------------------------------------
 ; Special Function Registers
 ;--------------------------------------------------------
@@ -472,6 +475,8 @@ _TFRQ           BIT 0xdf
 ; internal ram data
 ;--------------------------------------------------------
 	rseg R_DSEG
+_nec_transmit_PARM_2:
+	ds 1
 ;--------------------------------------------------------
 ; overlayable items in internal ram 
 ;--------------------------------------------------------
@@ -528,22 +533,260 @@ _TFRQ           BIT 0xdf
 ;--------------------------------------------------------
 	rseg R_CSEG
 ;------------------------------------------------------------
+;Allocation info for local variables in function 'ir_carrier_on'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/main.c:26: static void ir_carrier_on(void)
+;	-----------------------------------------
+;	 function ir_carrier_on
+;	-----------------------------------------
+_ir_carrier_on:
+	using	0
+;	src/main.c:28: TF0 = 0;
+	clr	_TF0
+;	src/main.c:29: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+	mov	_TH0,#0xFC
+;	src/main.c:30: TL0 =  TIMER0_RELOAD       & 0xFF;
+	mov	_TL0,#0x4C
+;	src/main.c:31: ET0 = 1;
+	setb	_ET0
+;	src/main.c:32: TR0 = 1;
+	setb	_TR0
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'ir_carrier_off'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/main.c:36: static void ir_carrier_off(void)
+;	-----------------------------------------
+;	 function ir_carrier_off
+;	-----------------------------------------
+_ir_carrier_off:
+;	src/main.c:38: TR0 = 0;
+	clr	_TR0
+;	src/main.c:39: ET0 = 0;
+	clr	_ET0
+;	src/main.c:40: P2_1 = 0;
+	clr	_P2_1
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'ir_burst'
+;------------------------------------------------------------
+;us                        Allocated to registers r2 r3 
+;------------------------------------------------------------
+;	src/main.c:44: static void ir_burst(unsigned int us)
+;	-----------------------------------------
+;	 function ir_burst
+;	-----------------------------------------
+_ir_burst:
+	mov	r2,dpl
+	mov	r3,dph
+;	src/main.c:46: ir_carrier_on();
+	push	ar2
+	push	ar3
+	lcall	_ir_carrier_on
+	pop	ar3
+	pop	ar2
+;	src/main.c:47: Timer3us(us);
+	mov	dpl,r2
+	mov	dph,r3
+	lcall	_Timer3us
+;	src/main.c:48: ir_carrier_off();
+	ljmp	_ir_carrier_off
+;------------------------------------------------------------
+;Allocation info for local variables in function 'ir_space'
+;------------------------------------------------------------
+;us                        Allocated to registers r2 r3 
+;------------------------------------------------------------
+;	src/main.c:52: static void ir_space(unsigned int us)
+;	-----------------------------------------
+;	 function ir_space
+;	-----------------------------------------
+_ir_space:
+	mov	r2,dpl
+	mov	r3,dph
+;	src/main.c:54: ir_carrier_off();
+	push	ar2
+	push	ar3
+	lcall	_ir_carrier_off
+	pop	ar3
+	pop	ar2
+;	src/main.c:55: Timer3us(us);
+	mov	dpl,r2
+	mov	dph,r3
+	ljmp	_Timer3us
+;------------------------------------------------------------
+;Allocation info for local variables in function 'nec_send_bit'
+;------------------------------------------------------------
+;bit_val                   Allocated to registers r2 
+;------------------------------------------------------------
+;	src/main.c:61: static void nec_send_bit(unsigned char bit_val)
+;	-----------------------------------------
+;	 function nec_send_bit
+;	-----------------------------------------
+_nec_send_bit:
+	mov	r2,dpl
+;	src/main.c:63: ir_burst(562);
+	mov	dptr,#0x0232
+	push	ar2
+	lcall	_ir_burst
+	pop	ar2
+;	src/main.c:64: if (bit_val)
+	mov	a,r2
+	jz	L006002?
+;	src/main.c:65: ir_space(1688);
+	mov	dptr,#0x0698
+	ljmp	_ir_space
+L006002?:
+;	src/main.c:67: ir_space(563);
+	mov	dptr,#0x0233
+	ljmp	_ir_space
+;------------------------------------------------------------
+;Allocation info for local variables in function 'nec_send_byte'
+;------------------------------------------------------------
+;b                         Allocated to registers r2 
+;i                         Allocated to registers r3 
+;------------------------------------------------------------
+;	src/main.c:71: static void nec_send_byte(unsigned char b)
+;	-----------------------------------------
+;	 function nec_send_byte
+;	-----------------------------------------
+_nec_send_byte:
+	mov	r2,dpl
+;	src/main.c:74: for (i = 0; i < 8; i++)
+	mov	r3,#0x00
+L007001?:
+	cjne	r3,#0x08,L007010?
+L007010?:
+	jnc	L007005?
+;	src/main.c:76: nec_send_bit(b & 0x01);
+	mov	a,#0x01
+	anl	a,r2
+	mov	dpl,a
+	push	ar2
+	push	ar3
+	lcall	_nec_send_bit
+	pop	ar3
+	pop	ar2
+;	src/main.c:77: b >>= 1;
+	mov	a,r2
+	clr	c
+	rrc	a
+	mov	r2,a
+;	src/main.c:74: for (i = 0; i < 8; i++)
+	inc	r3
+	sjmp	L007001?
+L007005?:
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'nec_transmit'
+;------------------------------------------------------------
+;cmd                       Allocated with name '_nec_transmit_PARM_2'
+;addr                      Allocated to registers r2 
+;------------------------------------------------------------
+;	src/main.c:83: void nec_transmit(unsigned char addr, unsigned char cmd)
+;	-----------------------------------------
+;	 function nec_transmit
+;	-----------------------------------------
+_nec_transmit:
+	mov	r2,dpl
+;	src/main.c:86: ir_burst(9000);
+	mov	dptr,#0x2328
+	push	ar2
+	lcall	_ir_burst
+;	src/main.c:87: ir_space(4500);
+	mov	dptr,#0x1194
+	lcall	_ir_space
+	pop	ar2
+;	src/main.c:90: nec_send_byte(addr);
+	mov	dpl,r2
+	push	ar2
+	lcall	_nec_send_byte
+	pop	ar2
+;	src/main.c:91: nec_send_byte((unsigned char)(~addr));
+	mov	a,r2
+	cpl	a
+	mov	dpl,a
+	lcall	_nec_send_byte
+;	src/main.c:92: nec_send_byte(cmd);
+	mov	dpl,_nec_transmit_PARM_2
+	lcall	_nec_send_byte
+;	src/main.c:93: nec_send_byte((unsigned char)(~cmd));
+	mov	a,_nec_transmit_PARM_2
+	cpl	a
+	mov	dpl,a
+	lcall	_nec_send_byte
+;	src/main.c:96: ir_burst(562);
+	mov	dptr,#0x0232
+	lcall	_ir_burst
+;	src/main.c:97: ir_space(563);
+	mov	dptr,#0x0233
+	ljmp	_ir_space
+;------------------------------------------------------------
+;Allocation info for local variables in function 'nec_repeat'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/main.c:101: void nec_repeat(void)
+;	-----------------------------------------
+;	 function nec_repeat
+;	-----------------------------------------
+_nec_repeat:
+;	src/main.c:103: ir_burst(9000);
+	mov	dptr,#0x2328
+	lcall	_ir_burst
+;	src/main.c:104: ir_space(2250);
+	mov	dptr,#0x08CA
+	lcall	_ir_space
+;	src/main.c:105: ir_burst(562);
+	mov	dptr,#0x0232
+	lcall	_ir_burst
+;	src/main.c:106: ir_space(563);
+	mov	dptr,#0x0233
+	ljmp	_ir_space
+;------------------------------------------------------------
 ;Allocation info for local variables in function 'main'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/main.c:16: void main (){
+;	src/main.c:110: void main(void)
 ;	-----------------------------------------
 ;	 function main
 ;	-----------------------------------------
 _main:
-	using	0
-;	src/main.c:17: init_pin_input();
+;	src/main.c:112: init_pin_input();
 	lcall	_init_pin_input
-;	src/main.c:18: TIMER0_Init();
+;	src/main.c:113: TIMER0_Init();
 	lcall	_TIMER0_Init
-;	src/main.c:20: while(1){
-L002002?:
-	sjmp	L002002?
+;	src/main.c:114: Timer3_Init();
+	lcall	_Timer3_Init
+;	src/main.c:118: nec_transmit(0x00, 0x0C);
+	mov	_nec_transmit_PARM_2,#0x0C
+	mov	dpl,#0x00
+	lcall	_nec_transmit
+;	src/main.c:119: waitms(40);
+	mov	dptr,#0x0028
+	lcall	_waitms
+;	src/main.c:120: nec_repeat();
+	lcall	_nec_repeat
+;	src/main.c:121: waitms(40);
+	mov	dptr,#0x0028
+	lcall	_waitms
+;	src/main.c:122: nec_repeat();
+	lcall	_nec_repeat
+;	src/main.c:123: waitms(40);
+	mov	dptr,#0x0028
+	lcall	_waitms
+;	src/main.c:124: nec_repeat();
+	lcall	_nec_repeat
+;	src/main.c:126: while(1)
+L010002?:
+;	src/main.c:129: nec_transmit(0x00, 0x0C);
+	mov	_nec_transmit_PARM_2,#0x0C
+	mov	dpl,#0x00
+	lcall	_nec_transmit
+;	src/main.c:130: waitms(200);
+	mov	dptr,#0x00C8
+	lcall	_waitms
+	sjmp	L010002?
 	rseg R_CSEG
 
 	rseg R_XINIT
