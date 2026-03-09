@@ -71,9 +71,10 @@ void Timer2_ISR(void) __interrupt (5)
 
 	ET2 = 1;
 	TR2 = 1;
+	
 }
 
-/*
+
 // Uses Timer3 to delay <us> micro-seconds. 
 void Timer3us(unsigned char us)
 {
@@ -101,4 +102,4 @@ void waitms (unsigned int ms)
 	for(j=0; j<ms; j++)
 		for (k=0; k<4; k++) Timer3us(250);
 }
-*/
+

@@ -67,6 +67,10 @@ void init_pin_input(void){
     P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
     P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
     P2SKIP |= 0b_0000_0010;
+	P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
+	P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin
+	P3 |= 0b_0000_0001;
+	XBR2 &= ~0x80;
     XBR2 |= 0x40;
 	P2_1 = 0;
 }

@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 19:51:59 2026
+; This file was generated Sun Mar 08 20:37:19 2026
 ;--------------------------------------------------------
 $name timer
 $optc51 --model-small
@@ -28,6 +28,8 @@ $optc51 --model-small
 	public _timer0_isr_ticks
 	public _TIMER0_Init
 	public _TIMER2_Init
+	public _Timer3us
+	public _waitms
 ;--------------------------------------------------------
 ; Special Function Registers
 ;--------------------------------------------------------
@@ -481,7 +483,7 @@ _timer0_isr_ticks:
 ;--------------------------------------------------------
 ; overlayable items in internal ram 
 ;--------------------------------------------------------
-	rseg R_OSEG
+	rseg	R_OSEG
 ;--------------------------------------------------------
 ; indirectly addressable internal ram data
 ;--------------------------------------------------------
@@ -678,6 +680,100 @@ L005003?:
 ;	eliminated unneeded push/pop dph
 ;	eliminated unneeded push/pop b
 ;	eliminated unneeded push/pop acc
+;------------------------------------------------------------
+;Allocation info for local variables in function 'Timer3us'
+;------------------------------------------------------------
+;us                        Allocated to registers r2 
+;i                         Allocated to registers r3 
+;------------------------------------------------------------
+;	src/timer.c:79: void Timer3us(unsigned char us)
+;	-----------------------------------------
+;	 function Timer3us
+;	-----------------------------------------
+_Timer3us:
+	mov	r2,dpl
+;	src/timer.c:84: CKCON0|=0b_0100_0000;
+	orl	_CKCON0,#0x40
+;	src/timer.c:86: TMR3RL = (-(SYSCLK)/1000000L); // Set Timer3 to overflow in 1us.
+	mov	_TMR3RL,#0xB4
+	mov	(_TMR3RL >> 8),#0xFF
+;	src/timer.c:87: TMR3 = TMR3RL;                 // Initialize Timer3 for first overflow
+	mov	_TMR3,_TMR3RL
+	mov	(_TMR3 >> 8),(_TMR3RL >> 8)
+;	src/timer.c:89: TMR3CN0 = 0x04;                 // Sart Timer3 and clear overflow flag
+	mov	_TMR3CN0,#0x04
+;	src/timer.c:90: for (i = 0; i < us; i++)       // Count <us> overflows
+	mov	r3,#0x00
+L006004?:
+	clr	c
+	mov	a,r3
+	subb	a,r2
+	jnc	L006007?
+;	src/timer.c:92: while (!(TMR3CN0 & 0x80));  // Wait for overflow
+L006001?:
+	mov	a,_TMR3CN0
+	jnb	acc.7,L006001?
+;	src/timer.c:93: TMR3CN0 &= ~(0x80);         // Clear overflow indicator
+	anl	_TMR3CN0,#0x7F
+;	src/timer.c:90: for (i = 0; i < us; i++)       // Count <us> overflows
+	inc	r3
+	sjmp	L006004?
+L006007?:
+;	src/timer.c:95: TMR3CN0 = 0 ;                   // Stop Timer3 and clear overflow flag
+	mov	_TMR3CN0,#0x00
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'waitms'
+;------------------------------------------------------------
+;ms                        Allocated to registers r2 r3 
+;j                         Allocated to registers r4 r5 
+;k                         Allocated to registers r6 
+;------------------------------------------------------------
+;	src/timer.c:98: void waitms (unsigned int ms)
+;	-----------------------------------------
+;	 function waitms
+;	-----------------------------------------
+_waitms:
+	mov	r2,dpl
+	mov	r3,dph
+;	src/timer.c:102: for(j=0; j<ms; j++)
+	mov	r4,#0x00
+	mov	r5,#0x00
+L007005?:
+	clr	c
+	mov	a,r4
+	subb	a,r2
+	mov	a,r5
+	subb	a,r3
+	jnc	L007009?
+;	src/timer.c:103: for (k=0; k<4; k++) Timer3us(250);
+	mov	r6,#0x00
+L007001?:
+	cjne	r6,#0x04,L007018?
+L007018?:
+	jnc	L007007?
+	mov	dpl,#0xFA
+	push	ar2
+	push	ar3
+	push	ar4
+	push	ar5
+	push	ar6
+	lcall	_Timer3us
+	pop	ar6
+	pop	ar5
+	pop	ar4
+	pop	ar3
+	pop	ar2
+	inc	r6
+	sjmp	L007001?
+L007007?:
+;	src/timer.c:102: for(j=0; j<ms; j++)
+	inc	r4
+	cjne	r4,#0x00,L007005?
+	inc	r5
+	sjmp	L007005?
+L007009?:
+	ret
 	rseg R_CSEG
 
 	rseg R_XINIT

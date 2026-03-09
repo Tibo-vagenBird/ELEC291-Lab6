@@ -1,7 +1,7 @@
 0000              1   ;--------------------------------------------------------
 0000              2   ; File Created by C51
 0000              3   ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-0000              4   ; This file was generated Sun Mar 08 19:51:59 2026
+0000              4   ; This file was generated Sun Mar 08 20:37:20 2026
 0000              5   ;--------------------------------------------------------
                   5   $name bootloader
                   6   $optc51 --model-small
@@ -600,17 +600,25 @@
 004A 43A606     600            orl     _P2MDOUT,#0x06
 004D            601   ;        src/bootloader.c:69: P2SKIP |= 0b_0000_0010;
 004D 43CC02     602            orl     _P2SKIP,#0x02
-0050            603   ;        src/bootloader.c:70: XBR2 |= 0x40;
-0050 43E340     604            orl     _XBR2,#0x40
-0053            605   ;        src/bootloader.c:71: P2_1 = 0;
-0053 C2A1       606            clr     _P2_1
-0055 22         607            ret
-0056            608            rseg R_CSEG
-0056            609   
-0000            610            rseg R_XINIT
-0000            611   
-0000            612            rseg R_CONST
-0000            613   
-0000            614            CSEG
-0000            615   
-0000            616   end
+0050            603   ;        src/bootloader.c:70: P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
+0050 43F401     604            orl     _P3MDIN,#0x01
+0053            605   ;        src/bootloader.c:71: P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin
+0053 539CFE     606            anl     _P3MDOUT,#0xFE
+0056            607   ;        src/bootloader.c:72: P3 |= 0b_0000_0001;
+0056 43B001     608            orl     _P3,#0x01
+0059            609   ;        src/bootloader.c:73: XBR2 &= ~0x80;
+0059 53E37F     610            anl     _XBR2,#0x7F
+005C            611   ;        src/bootloader.c:74: XBR2 |= 0x40;
+005C 43E340     612            orl     _XBR2,#0x40
+005F            613   ;        src/bootloader.c:75: P2_1 = 0;
+005F C2A1       614            clr     _P2_1
+0061 22         615            ret
+0062            616            rseg R_CSEG
+0062            617   
+0000            618            rseg R_XINIT
+0000            619   
+0000            620            rseg R_CONST
+0000            621   
+0000            622            CSEG
+0000            623   
+0000            624   end

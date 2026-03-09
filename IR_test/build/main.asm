@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 19:46:33 2026
+; This file was generated Sun Mar 08 20:49:10 2026
 ;--------------------------------------------------------
 $name main
 $optc51 --model-small
@@ -24,6 +24,10 @@ $optc51 --model-small
 ; Public variables in this module
 ;--------------------------------------------------------
 	public _main
+	public _switch_ir_mode
+	public _debounce
+	public _last_ir_state
+	public _ir_state
 ;--------------------------------------------------------
 ; Special Function Registers
 ;--------------------------------------------------------
@@ -488,6 +492,10 @@ _TFRQ           BIT 0xdf
 ; bit data
 ;--------------------------------------------------------
 	rseg R_BSEG
+_ir_state:
+	DBIT	1
+_last_ir_state:
+	DBIT	1
 ;--------------------------------------------------------
 ; paged external ram data
 ;--------------------------------------------------------
@@ -522,30 +530,120 @@ _TFRQ           BIT 0xdf
 ; data variables initialization
 ;--------------------------------------------------------
 	rseg R_DINIT
+;	src/main.c:10: volatile bit ir_state = 0; // variable for ir message. 0 = wave, 1 = constant
+	clr	_ir_state
+;	src/main.c:11: volatile bit last_ir_state = 0;
+	clr	_last_ir_state
 	; The linker places a 'ret' at the end of segment R_DINIT.
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
 	rseg R_CSEG
 ;------------------------------------------------------------
+;Allocation info for local variables in function 'debounce'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/main.c:13: void debounce(void){
+;	-----------------------------------------
+;	 function debounce
+;	-----------------------------------------
+_debounce:
+	using	0
+;	src/main.c:14: if(P3_0 == 0){
+	jb	_P3_0,L002008?
+;	src/main.c:15: waitms(50);
+	mov	dptr,#0x0032
+	lcall	_waitms
+;	src/main.c:16: if(P3_0 == 0){
+	jb	_P3_0,L002008?
+;	src/main.c:17: while(P3_0 == 0);
+L002001?:
+	jnb	_P3_0,L002001?
+;	src/main.c:18: ir_state = !ir_state;
+	cpl	_ir_state
+L002008?:
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'switch_ir_mode'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/main.c:23: void switch_ir_mode(void){
+;	-----------------------------------------
+;	 function switch_ir_mode
+;	-----------------------------------------
+_switch_ir_mode:
+;	src/main.c:24: if(ir_state){
+	jnb	_ir_state,L003002?
+;	src/main.c:26: TR2 = 0;
+	clr	_TR2
+;	src/main.c:27: ET2 = 0;
+	clr	_ET2
+;	src/main.c:29: TR0 = 0;
+	clr	_TR0
+;	src/main.c:30: ET0 = 0;
+	clr	_ET0
+;	src/main.c:31: P2_1 = 0;
+	clr	_P2_1
+	ret
+L003002?:
+;	src/main.c:35: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+	mov	_TH0,#0xFC
+;	src/main.c:36: TL0 = TIMER0_RELOAD & 0xFF;
+	mov	_TL0,#0x4C
+;	src/main.c:37: TF0 = 0;
+	clr	_TF0
+;	src/main.c:38: ET0 = 1;
+	setb	_ET0
+;	src/main.c:39: TR0 = 1;
+	setb	_TR0
+;	src/main.c:41: TMR2H = (TIMER2_RELOAD >> 8) & 0xFF;
+	mov	_TMR2H,#0xB5
+;	src/main.c:42: TMR2L = TIMER2_RELOAD & 0xFF;
+	mov	_TMR2L,#0xFC
+;	src/main.c:43: TF2H = 0;
+	clr	_TF2H
+;	src/main.c:44: TF2L = 0;
+	clr	_TF2L
+;	src/main.c:45: ET2 = 1;
+	setb	_ET2
+;	src/main.c:46: TR2 = 1;
+	setb	_TR2
+	ret
+;------------------------------------------------------------
 ;Allocation info for local variables in function 'main'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/main.c:16: void main (){
+;	src/main.c:51: void main (){
 ;	-----------------------------------------
 ;	 function main
 ;	-----------------------------------------
 _main:
-	using	0
-;	src/main.c:17: init_pin_input();
+;	src/main.c:52: init_pin_input();
 	lcall	_init_pin_input
-;	src/main.c:18: TIMER0_Init();
+;	src/main.c:53: TIMER0_Init();
 	lcall	_TIMER0_Init
-;	src/main.c:19: TIMER2_Init();
+;	src/main.c:54: TIMER2_Init();
 	lcall	_TIMER2_Init
-;	src/main.c:21: while(1){
-L002002?:
-	sjmp	L002002?
+;	src/main.c:55: last_ir_state = ir_state;
+	mov	c,_ir_state
+	mov	_last_ir_state,c
+;	src/main.c:57: while(1){
+L004004?:
+;	src/main.c:58: debounce();
+	lcall	_debounce
+;	src/main.c:59: if(ir_state != last_ir_state){
+	mov	c,_ir_state
+	jb	_last_ir_state,L004010?
+	cpl	c
+L004010?:
+	jc	L004002?
+;	src/main.c:60: switch_ir_mode();
+	lcall	_switch_ir_mode
+L004002?:
+;	src/main.c:62: last_ir_state = ir_state;
+	mov	c,_ir_state
+	mov	_last_ir_state,c
+	sjmp	L004004?
 	rseg R_CSEG
 
 	rseg R_XINIT

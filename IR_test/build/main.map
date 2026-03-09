@@ -5,18 +5,18 @@ Modules linked:
    'crt0' from 'D:/CrossIDE/Call51/LiB/Small/libc51f.lib'
 
 Memory use per module linked:
-C:00113 D:004 I:000 B:000 X:00000 - build/timer
-C:00011 D:000 I:000 B:000 X:00000 - build/main
-C:00086 D:000 I:000 B:000 X:00000 - build/bootloader
+C:00214 D:004 I:000 B:000 X:00000 - build/timer
+C:00096 D:000 I:000 B:002 X:00000 - build/main
+C:00098 D:000 I:000 B:000 X:00000 - build/bootloader
 C:00113 D:000 I:000 B:000 X:00000 - crt0
 C:00010 D:000 I:000 B:000 X:00000 - ABSOLUTE
 ------------------------------------------------------
-C:00333 D:004 I:000 B:000 X:00000 - Totals
+C:00531 D:004 I:000 B:002 X:00000 - Totals
 
 INTERMAL RAM map (see legend below):
 00: 0 0 0 0 0 0 0 0 a a a a . . . . 
 10: . . . . . . . . . . . . . . . . 
-20: . . . . . . . . . . . . . . . . 
+20: B . . . . . . . . . . . . . . . 
 30: . . . . . . . . . . . . . . . . 
 40: . . . . . . . . . . . . . . . . 
 50: . . . . . . . . . . . . . . . . 
@@ -40,7 +40,7 @@ Legend:
 	a: build/timer:R_DSEG
 
 BIT map:
-00: . . . . . . . . . . . . . . . . 
+00: U U . . . . . . . . . . . . . . 
 10: . . . . . . . . . . . . . . . . 
 20: . . . . . . . . . . . . . . . . 
 30: . . . . . . . . . . . . . . . . 
@@ -50,7 +50,7 @@ BIT map:
 70: . . . . . . . . . . . . . . . . 
 
 CODE usage map:
-0000: 229 104 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
+0000: 233 256 042 000 000 000 000 000 000 000 000 000 000 000 000 000 
 1000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 2000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 3000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
@@ -66,7 +66,7 @@ C000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
 D000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 E000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
 F000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
-Total: 333 bytes
+Total: 531 bytes
 
 XDATA usage map:
 0000: 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 
@@ -89,10 +89,10 @@ Total: 0 bytes
 
 Base Segments:
    BIT_BANK=D:0000, size=0000
-   R_BSEG=B:0000, size=0000
+   R_BSEG=B:0000, size=0002
    R_CONST=C:0000, size=0000
-   R_CSEG=C:009F, size=00C9
-   R_DINIT=C:000E, size=0009
+   R_CSEG=C:009F, size=018B
+   R_DINIT=C:000E, size=000D
    R_DSEG=D:0000, size=0004
    R_GSINIT=C:002E, size=0071
    R_HOME=C:0000, size=0000
@@ -106,21 +106,23 @@ Base Segments:
 
 Module Segments:
    CSEG=C:0000, size=000A
-   build/bootloader:R_CSEG=C:0112, size=0056
-   build/main:R_CSEG=C:0107, size=000B
-   build/timer:R_CSEG=C:009F, size=0068
+   build/bootloader:R_CSEG=C:01C8, size=0062
+   build/main:R_BSEG=B:0000, size=0002
+   build/main:R_CSEG=C:016C, size=005C
+   build/main:R_DINIT=C:0017, size=0004
+   build/timer:R_CSEG=C:009F, size=00CD
    build/timer:R_DINIT=C:000E, size=0009
    build/timer:R_DSEG=D:0008, size=0004
    crt0:R_GSINIT=C:002E, size=0071
 
 Public symbols:
-   _R_BSEG_size=L:0000
+   _R_BSEG_size=L:0002
    _R_BSEG_start=L:0000
    _R_CONST_size=L:0000
    _R_CONST_start=L:0000
-   _R_CSEG_size=L:00C9
+   _R_CSEG_size=L:018B
    _R_CSEG_start=L:009F
-   _R_DINIT_size=L:0009
+   _R_DINIT_size=L:000D
    _R_DINIT_start=L:000E
    _R_GSINIT_size=L:0071
    _R_GSINIT_start=L:002E
@@ -142,23 +144,42 @@ Public symbols:
    _TIMER2_Init=C:00C9
    _Timer0_ISR=C:00BC
    _Timer2_ISR=C:00E3
-   __c51_external_startup=C:0112
+   _Timer3us=C:0107
+   __c51_external_startup=C:01C8
    _build/timer_R_DSEG_size=L:0004
    _build/timer_R_DSEG_start=L:0008
    _crt0=C:002E
-   _dummy_name_crt0=C:0168
-   _init_pin_input=C:0159
-   _main=C:0107
-   _stack_start=L:000C
+   _debounce=C:016C
+   _dummy_name_crt0=C:022A
+   _init_pin_input=C:020F
+   _ir_state=B:0000
+   _last_ir_state=B:0001
+   _main=C:01A7
+   _stack_start=L:0021
+   _switch_ir_mode=C:017E
    _timer0_isr_ticks=D:0008
+   _waitms=C:0131
 
 Local symbols:
-   build/bootloader:L002001?=C:0130
-   build/bootloader:L002004?=C:013B
-   build/main:L002002?=C:0110
+   build/bootloader:L002001?=C:01E6
+   build/bootloader:L002004?=C:01F1
+   build/main:L002001?=C:0178
+   build/main:L002008?=C:017D
+   build/main:L003002?=C:018C
+   build/main:L004002?=C:01C2
+   build/main:L004004?=C:01B4
+   build/main:L004010?=C:01BD
    build/timer:L005002?=C:00F6
    build/timer:L005003?=C:0102
    build/timer:L005007?=C:00F0
+   build/timer:L006001?=C:0122
+   build/timer:L006004?=C:011D
+   build/timer:L006007?=C:012D
+   build/timer:L007001?=C:0142
+   build/timer:L007005?=C:0139
+   build/timer:L007007?=C:0164
+   build/timer:L007009?=C:016B
+   build/timer:L007018?=C:0145
    crt0:PClearLoop?done?=C:0097
    crt0:PClearLoop?repeat?=C:0089
    crt0:XClearLoop?done?=C:007F
