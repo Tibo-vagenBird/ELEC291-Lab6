@@ -1,7 +1,7 @@
 0000              1   ;--------------------------------------------------------
 0000              2   ; File Created by C51
 0000              3   ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-0000              4   ; This file was generated Sun Mar 08 20:37:20 2026
+0000              4   ; This file was generated Mon Mar 09 11:59:28 2026
 0000              5   ;--------------------------------------------------------
                   5   $name bootloader
                   6   $optc51 --model-small
@@ -559,7 +559,7 @@
 001E            559   ;        src/bootloader.c:45: while ((CLKSEL & 0x80) == 0);
 001E            560   L002001?:
 001E E5A9       561            mov     a,_CLKSEL
-0020 30E750     562            jnb     acc.7,L002001?
+0020 30E718     562            jnb     acc.7,L002001?
 0023            563   ;        src/bootloader.c:46: CLKSEL = 0x03;
 0023 75A903     564            mov     _CLKSEL,#0x03
 0026            565   ;        src/bootloader.c:47: CLKSEL = 0x03;
@@ -567,7 +567,7 @@
 0029            567   ;        src/bootloader.c:48: while ((CLKSEL & 0x80) == 0);
 0029            568   L002004?:
 0029 E5A9       569            mov     a,_CLKSEL
-002B 30E7D0     570            jnb     acc.7,L002004?
+002B 30E798     570            jnb     acc.7,L002004?
 002E            571   ;        src/bootloader.c:53: SFRPAGE = 0x00;
 002E 75A700     572            mov     _SFRPAGE,#0x00
 0031            573   ;        src/bootloader.c:54: P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output (P0.4)
@@ -594,12 +594,12 @@
 0047            594   ;         function init_pin_input
 0047            595   ;        -----------------------------------------
 0047            596   _init_pin_input:
-0047            597   ;        src/bootloader.c:67: P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
-0047 43F306     598            orl     _P2MDIN,#0x06
-004A            599   ;        src/bootloader.c:68: P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
-004A 43A606     600            orl     _P2MDOUT,#0x06
-004D            601   ;        src/bootloader.c:69: P2SKIP |= 0b_0000_0010;
-004D 43CC02     602            orl     _P2SKIP,#0x02
+0047            597   ;        src/bootloader.c:67: P2MDIN |= 0b_0000_0111; // enable p2.0, p2.1, p2.2 to be digital pin
+0047 43F307     598            orl     _P2MDIN,#0x07
+004A            599   ;        src/bootloader.c:68: P2MDOUT |= 0b_0000_0111; // enable p2.0, p2.1, p2.2 to be output pin 
+004A 43A607     600            orl     _P2MDOUT,#0x07
+004D            601   ;        src/bootloader.c:69: P2SKIP |= 0b_0000_0111;
+004D 43CC07     602            orl     _P2SKIP,#0x07
 0050            603   ;        src/bootloader.c:70: P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
 0050 43F401     604            orl     _P3MDIN,#0x01
 0053            605   ;        src/bootloader.c:71: P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin

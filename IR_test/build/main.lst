@@ -1,7 +1,7 @@
 0000              1   ;--------------------------------------------------------
 0000              2   ; File Created by C51
 0000              3   ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-0000              4   ; This file was generated Sun Mar 08 20:49:10 2026
+0000              4   ; This file was generated Mon Mar 09 12:00:09 2026
 0000              5   ;--------------------------------------------------------
                   5   $name main
                   6   $optc51 --model-small
@@ -550,15 +550,15 @@
 0000            550   _debounce:
 0000            551            using   0
 0000            552   ;        src/main.c:14: if(P3_0 == 0){
-0000 20B050     553            jb      _P3_0,L002008?
+0000 20B018     553            jb      _P3_0,L002008?
 0003            554   ;        src/main.c:15: waitms(50);
 0003 900032     555            mov     dptr,#0x0032
 0006 120000     556            lcall   _waitms
 0009            557   ;        src/main.c:16: if(P3_0 == 0){
-0009 20B050     558            jb      _P3_0,L002008?
+0009 20B018     558            jb      _P3_0,L002008?
 000C            559   ;        src/main.c:17: while(P3_0 == 0);
 000C            560   L002001?:
-000C 30B0D0     561            jnb     _P3_0,L002001?
+000C 30B098     561            jnb     _P3_0,L002001?
 000F            562   ;        src/main.c:18: ir_state = !ir_state;
 000F B250       563            cpl     _ir_state
 0011            564   L002008?:
@@ -573,7 +573,7 @@
 0012            573   ;        -----------------------------------------
 0012            574   _switch_ir_mode:
 0012            575   ;        src/main.c:24: if(ir_state){
-0012 305010     576            jnb     _ir_state,L003002?
+0012 3050D8     576            jnb     _ir_state,L003002?
 0015            577   ;        src/main.c:26: TR2 = 0;
 0015 C2CA       578            clr     _TR2
 0017            579   ;        src/main.c:27: ET2 = 0;
@@ -584,72 +584,76 @@
 001B C2A9       584            clr     _ET0
 001D            585   ;        src/main.c:31: P2_1 = 0;
 001D C2A1       586            clr     _P2_1
-001F 22         587            ret
-0020            588   L003002?:
-0020            589   ;        src/main.c:35: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
-0020 758CFC     590            mov     _TH0,#0xFC
-0023            591   ;        src/main.c:36: TL0 = TIMER0_RELOAD & 0xFF;
-0023 758A4C     592            mov     _TL0,#0x4C
-0026            593   ;        src/main.c:37: TF0 = 0;
-0026 C28D       594            clr     _TF0
-0028            595   ;        src/main.c:38: ET0 = 1;
-0028 D2A9       596            setb    _ET0
-002A            597   ;        src/main.c:39: TR0 = 1;
-002A D28C       598            setb    _TR0
-002C            599   ;        src/main.c:41: TMR2H = (TIMER2_RELOAD >> 8) & 0xFF;
-002C 75CFB5     600            mov     _TMR2H,#0xB5
-002F            601   ;        src/main.c:42: TMR2L = TIMER2_RELOAD & 0xFF;
-002F 75CEFC     602            mov     _TMR2L,#0xFC
-0032            603   ;        src/main.c:43: TF2H = 0;
-0032 C2CF       604            clr     _TF2H
-0034            605   ;        src/main.c:44: TF2L = 0;
-0034 C2CE       606            clr     _TF2L
-0036            607   ;        src/main.c:45: ET2 = 1;
-0036 D2AD       608            setb    _ET2
-0038            609   ;        src/main.c:46: TR2 = 1;
-0038 D2CA       610            setb    _TR2
-003A 22         611            ret
-003B            612   ;------------------------------------------------------------
-003B            613   ;Allocation info for local variables in function 'main'
-003B            614   ;------------------------------------------------------------
-003B            615   ;------------------------------------------------------------
-003B            616   ;        src/main.c:51: void main (){
-003B            617   ;        -----------------------------------------
-003B            618   ;         function main
-003B            619   ;        -----------------------------------------
-003B            620   _main:
-003B            621   ;        src/main.c:52: init_pin_input();
-003B 120000     622            lcall   _init_pin_input
-003E            623   ;        src/main.c:53: TIMER0_Init();
-003E 120000     624            lcall   _TIMER0_Init
-0041            625   ;        src/main.c:54: TIMER2_Init();
-0041 120000     626            lcall   _TIMER2_Init
-0044            627   ;        src/main.c:55: last_ir_state = ir_state;
-0044 A250       628            mov     c,_ir_state
-0046 9210       629            mov     _last_ir_state,c
-0048            630   ;        src/main.c:57: while(1){
-0048            631   L004004?:
-0048            632   ;        src/main.c:58: debounce();
-0048 120000     633            lcall   _debounce
-004B            634   ;        src/main.c:59: if(ir_state != last_ir_state){
-004B A250       635            mov     c,_ir_state
-004D 201050     636            jb      _last_ir_state,L004010?
-0050 B3         637            cpl     c
-0051            638   L004010?:
-0051 4000       639            jc      L004002?
-0053            640   ;        src/main.c:60: switch_ir_mode();
-0053 120000     641            lcall   _switch_ir_mode
-0056            642   L004002?:
-0056            643   ;        src/main.c:62: last_ir_state = ir_state;
-0056 A250       644            mov     c,_ir_state
-0058 9210       645            mov     _last_ir_state,c
-005A 8000       646            sjmp    L004004?
-005C            647            rseg R_CSEG
-005C            648   
-0000            649            rseg R_XINIT
-0000            650   
-0000            651            rseg R_CONST
-0000            652   
-0003            653            CSEG
-0003            654   
-0003            655   end
+001F            587   ;        src/main.c:32: P2_0 = 0;
+001F C2A0       588            clr     _P2_0
+0021 22         589            ret
+0022            590   L003002?:
+0022            591   ;        src/main.c:36: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+0022 758CFC     592            mov     _TH0,#0xFC
+0025            593   ;        src/main.c:37: TL0 = TIMER0_RELOAD & 0xFF;
+0025 758A4C     594            mov     _TL0,#0x4C
+0028            595   ;        src/main.c:38: TF0 = 0;
+0028 C28D       596            clr     _TF0
+002A            597   ;        src/main.c:39: ET0 = 1;
+002A D2A9       598            setb    _ET0
+002C            599   ;        src/main.c:40: TR0 = 1;
+002C D28C       600            setb    _TR0
+002E            601   ;        src/main.c:42: TMR2H = (TIMER2_RELOAD >> 8) & 0xFF;
+002E 75CFB5     602            mov     _TMR2H,#0xB5
+0031            603   ;        src/main.c:43: TMR2L = TIMER2_RELOAD & 0xFF;
+0031 75CEFC     604            mov     _TMR2L,#0xFC
+0034            605   ;        src/main.c:44: TF2H = 0;
+0034 C2CF       606            clr     _TF2H
+0036            607   ;        src/main.c:45: TF2L = 0;
+0036 C2CE       608            clr     _TF2L
+0038            609   ;        src/main.c:46: ET2 = 1;
+0038 D2AD       610            setb    _ET2
+003A            611   ;        src/main.c:47: TR2 = 1;
+003A D2CA       612            setb    _TR2
+003C            613   ;        src/main.c:48: P2_0 = 1;
+003C D2A0       614            setb    _P2_0
+003E 22         615            ret
+003F            616   ;------------------------------------------------------------
+003F            617   ;Allocation info for local variables in function 'main'
+003F            618   ;------------------------------------------------------------
+003F            619   ;------------------------------------------------------------
+003F            620   ;        src/main.c:53: void main (){
+003F            621   ;        -----------------------------------------
+003F            622   ;         function main
+003F            623   ;        -----------------------------------------
+003F            624   _main:
+003F            625   ;        src/main.c:54: init_pin_input();
+003F 120000     626            lcall   _init_pin_input
+0042            627   ;        src/main.c:55: TIMER0_Init();
+0042 120000     628            lcall   _TIMER0_Init
+0045            629   ;        src/main.c:56: TIMER2_Init();
+0045 120000     630            lcall   _TIMER2_Init
+0048            631   ;        src/main.c:57: last_ir_state = ir_state;
+0048 A250       632            mov     c,_ir_state
+004A 9210       633            mov     _last_ir_state,c
+004C            634   ;        src/main.c:59: while(1){
+004C            635   L004004?:
+004C            636   ;        src/main.c:60: debounce();
+004C 120000     637            lcall   _debounce
+004F            638   ;        src/main.c:61: if(ir_state != last_ir_state){
+004F A250       639            mov     c,_ir_state
+0051 201018     640            jb      _last_ir_state,L004010?
+0054 B3         641            cpl     c
+0055            642   L004010?:
+0055 4000       643            jc      L004002?
+0057            644   ;        src/main.c:62: switch_ir_mode();
+0057 120000     645            lcall   _switch_ir_mode
+005A            646   L004002?:
+005A            647   ;        src/main.c:64: last_ir_state = ir_state;
+005A A250       648            mov     c,_ir_state
+005C 9210       649            mov     _last_ir_state,c
+005E 8000       650            sjmp    L004004?
+0060            651            rseg R_CSEG
+0060            652   
+0000            653            rseg R_XINIT
+0000            654   
+0000            655            rseg R_CONST
+0000            656   
+0003            657            CSEG
+0003            658   
+0003            659   end

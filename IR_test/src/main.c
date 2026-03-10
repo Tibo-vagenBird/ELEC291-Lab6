@@ -29,6 +29,7 @@ void switch_ir_mode(void){
         TR0 = 0;
         ET0 = 0;
         P2_1 = 0;
+		P2_0 = 0;
 	}
 	else{
 		// turn ON IR
@@ -44,6 +45,7 @@ void switch_ir_mode(void){
         TF2L = 0;
         ET2 = 1;
         TR2 = 1;
+		P2_0 = 1;
 	}
 }
 
