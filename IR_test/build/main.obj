@@ -8,41 +8,42 @@ build/main
 
 <SEGMENTS>
 R_GSINIT,code,0000,NO
-R_BSEG,bit,0002,NO
+R_BSEG,bit,0001,NO
 R_XSEG,xdata,0000,NO
 BIT_BANK,data,0000,OV
 R_CONST,code,0000,NO
 rbank0,data,0000,OV
 R_PSEG,xdata,0000,NO
-R_DINIT,code,0004,NO
-R_DSEG,data,0000,NO
+R_DINIT,code,0005,NO
+R_DSEG,data,0001,NO
 R_OSEG,data,0000,OV
 R_IXSEG,xdata,0000,NO
 R_ISEG,idata,0000,NO
 R_HOME,code,0000,NO
 R_XINIT,code,0000,NO
-R_CSEG,code,005C,NO
+R_CSEG,code,007C,NO
 </SEGMENTS>
 
 <LOCALS>
 L002001?,R_CSEG,000C,0000
-L003002?,R_CSEG,0020,0000
-L004004?,R_CSEG,0048,0000
-L004002?,R_CSEG,0056,0000
-L004010?,R_CSEG,0051,0000
-L002008?,R_CSEG,0011,0000
+L003002?,R_CSEG,0028,0000
+L004004?,R_CSEG,005C,0000
+L004002?,R_CSEG,0052,0000
+L002016?,R_CSEG,0014,0000
+L002008?,R_CSEG,0018,0000
 </LOCALS>
 
 <PUBLICS>
-_main,R_CSEG,003B,0000
-_ir_state,R_BSEG,0000,0001
+_main,R_CSEG,0043,0000
+_ir_state,R_DSEG,0000,0001
 _debounce,R_CSEG,0000,0000
-_switch_ir_mode,R_CSEG,0012,0000
-_last_ir_state,R_BSEG,0001,0001
+_switch_ir_mode,R_CSEG,0019,0000
+_last_ir_state,R_BSEG,0000,0001
 </PUBLICS>
 
 <EXTERNALS>
 _TIMER0_Init,any,0000,0000
+_IR_Send,any,0000,0000
 _TIMER2_Init,any,0000,0000
 _init_pin_input,any,0000,0000
 _crt0,any,0000,0000
@@ -75,7 +76,7 @@ _waitms,any,0000,0000
 </CODE>
 
 <CODE R_DINIT>
-C2 bit(_ir_state;)
+75 data8(_ir_state;) 01
 C2 bit(_last_ir_state;)
 </CODE>
 
@@ -85,9 +86,14 @@ C2 bit(_last_ir_state;)
 12 addr16(_waitms;)  
 20 B0 rel3(L002008?;)
 30 B0 rel3(L002001?;)
-B2 bit(_ir_state;)
+E5 data8(_ir_state;)
+B4 01 rel3(L002016?;)
+E4
+33
+F5 data8(_ir_state;)
 22
-30 bit(_ir_state;) rel3(L003002?;)
+E5 data8(_ir_state;)
+60 rel2(L003002?;)
 C2 CA
 C2 AD
 C2 8C
@@ -109,16 +115,28 @@ D2 CA
 12 addr16(_init_pin_input;)  
 12 addr16(_TIMER0_Init;)  
 12 addr16(_TIMER2_Init;)  
-A2 bit(_ir_state;)
-92 data8(_last_ir_state;)
-12 addr16(_debounce;)  
-A2 bit(_ir_state;)
-20 bit(_last_ir_state;) rel3(L004010?;)
-B3
-40 rel2(L004002?;)
-12 addr16(_switch_ir_mode;)  
-A2 bit(_ir_state;)
-92 data8(_last_ir_state;)
+75 82 00
+12 addr16(_IR_Send;)  
+90 01 F4
+12 addr16(_waitms;)  
+7A 00
+7B 00
+C3
+EA
+94 0A
+EB
+64 80
+94 80
+50 rel2(L004002?;)
+85 data8(_ir_state;) 82
+C0 02
+C0 03
+12 addr16(_IR_Send;)  
+D0 03
+D0 02
+0A
+BA 00 rel3(L004004?;)
+0B
 80 rel2(L004004?;)
 </CODE>
 

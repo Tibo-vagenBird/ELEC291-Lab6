@@ -7,6 +7,7 @@
 #include <string.h>
 #include "usart.h"
 #include "lcd.h"
+#include "ir_receiver.h"
 
 /* Pinout for DIP28 ATMega328P:
 
@@ -201,17 +202,38 @@ static uint32_t count_t1_rising_edges_1s(void)
     return total;
 }
 
+// Poll IR receiver. Retries up to 8 times until a valid byte is received.
+// Prints each attempt result over UART for debugging.
+//   result  1 -> byte received successfully
+//   result  0 -> timeout (no carrier seen within ~10ms)
+//   result -1 -> framing error (false sync on stop burst)
+static void poll_ir(uint8_t *c_or_r)
+{
+    uint8_t ir_byte = 0;
+    int8_t  result  = 0;
+    uint8_t attempt;
+    char    dbg[40];
+
+    for (attempt = 0; attempt < 8; attempt++)
+    {
+        result = IR_Receive(&ir_byte);
+        sprintf(dbg, "IR[%u]: res=%d byte=%u\n", attempt, (int)result, ir_byte);
+        writeString(dbg);
+        if (result == 1) break;   // got a clean frame, stop retrying
+    }
+
+    if (result == 1 && (ir_byte == 0 || ir_byte == 1))
+        *c_or_r = ir_byte;
+}
+
 int main( void )
 {
 	char buff[17];
 	char uart_buff[32];
-	char ir_buf[32];
 	uint32_t pulse_count;
-	uint8_t ir_addr, ir_cmd;
-	int8_t  nec_result;
     float capacitance;
     float resistance;
-    uint8_t c_or_r;
+    uint8_t c_or_r = 0; // default: display capacitance
 
     Configure_Pins();
 	LCD_4BIT();
@@ -229,16 +251,16 @@ int main( void )
         cal_capacitance(pulse_count, &capacitance);
         cal_resistence(pulse_count, &resistance);
 
-        c_or_r = read_pb2_bit();
+        poll_ir(&c_or_r);
 
 		sprintf(uart_buff, "freq: %lu %f c_or_r: %u\n", pulse_count, capacitance, c_or_r);
 		writeString(uart_buff);
         if (c_or_r == 0) {
-            sprintf(buff, "%.2f", capacitance);
+            sprintf(buff, "%.2f, %u", capacitance, c_or_r);
             LCDprint("Capacitance:", 1, 1);
         }
         else {
-            sprintf(buff, "%.2f", resistance);
+            sprintf(buff, "%.2f, %u", resistance, c_or_r);
             LCDprint("Resistance:", 1, 1);
         }
         LCDprint(buff, 2, 1);

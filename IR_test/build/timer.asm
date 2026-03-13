@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 20:37:19 2026
+; This file was generated Mon Mar 09 10:57:58 2026
 ;--------------------------------------------------------
 $name timer
 $optc51 --model-small
@@ -25,7 +25,11 @@ $optc51 --model-small
 ;--------------------------------------------------------
 	public _Timer2_ISR
 	public _Timer0_ISR
+	public _fsm_trigger
+	public _ir_byte
+	public _fsm_state
 	public _timer0_isr_ticks
+	public _IR_Send
 	public _TIMER0_Init
 	public _TIMER2_Init
 	public _Timer3us
@@ -475,14 +479,33 @@ _TFRQ           BIT 0xdf
 ;--------------------------------------------------------
 	rbank0 segment data overlay
 ;--------------------------------------------------------
+; overlayable bit register bank
+;--------------------------------------------------------
+	rseg BIT_BANK
+bits:
+	ds 1
+	b0 equ  bits.0 
+	b1 equ  bits.1 
+	b2 equ  bits.2 
+	b3 equ  bits.3 
+	b4 equ  bits.4 
+	b5 equ  bits.5 
+	b6 equ  bits.6 
+	b7 equ  bits.7 
+;--------------------------------------------------------
 ; internal ram data
 ;--------------------------------------------------------
 	rseg R_DSEG
 _timer0_isr_ticks:
 	ds 4
+_fsm_state:
+	ds 1
+_ir_byte:
+	ds 1
 ;--------------------------------------------------------
 ; overlayable items in internal ram 
 ;--------------------------------------------------------
+	rseg	R_OSEG
 	rseg	R_OSEG
 ;--------------------------------------------------------
 ; indirectly addressable internal ram data
@@ -496,6 +519,8 @@ _timer0_isr_ticks:
 ; bit data
 ;--------------------------------------------------------
 	rseg R_BSEG
+_fsm_trigger:
+	DBIT	1
 ;--------------------------------------------------------
 ; paged external ram data
 ;--------------------------------------------------------
@@ -532,68 +557,124 @@ _timer0_isr_ticks:
 ; data variables initialization
 ;--------------------------------------------------------
 	rseg R_DINIT
-;	src/timer.c:4: volatile unsigned long timer0_isr_ticks = 0;
+;	src/timer.c:5: volatile unsigned long timer0_isr_ticks = 0;
 	clr	a
 	mov	_timer0_isr_ticks,a
 	mov	(_timer0_isr_ticks + 1),a
 	mov	(_timer0_isr_ticks + 2),a
 	mov	(_timer0_isr_ticks + 3),a
+;	src/timer.c:8: volatile unsigned char fsm_state   = FSM_IDLE;
+	mov	_fsm_state,#0x0B
+;	src/timer.c:9: volatile unsigned char ir_byte     = 0;
+	mov	_ir_byte,#0x00
+;	src/timer.c:10: volatile bit           fsm_trigger = 0; // set by IR_Send() to kick off the FSM
+	clr	_fsm_trigger
 	; The linker places a 'ret' at the end of segment R_DINIT.
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
 	rseg R_CSEG
 ;------------------------------------------------------------
+;Allocation info for local variables in function 'enable_timer0'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:14: static void enable_timer0(void)
+;	-----------------------------------------
+;	 function enable_timer0
+;	-----------------------------------------
+_enable_timer0:
+	using	0
+;	src/timer.c:16: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+	mov	_TH0,#0xFC
+;	src/timer.c:17: TL0 = TIMER0_RELOAD & 0xFF;
+	mov	_TL0,#0x4C
+;	src/timer.c:18: TF0 = 0;
+	clr	_TF0
+;	src/timer.c:19: ET0 = 1;
+	setb	_ET0
+;	src/timer.c:20: TR0 = 1;
+	setb	_TR0
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'disable_timer0'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/timer.c:23: static void disable_timer0(void)
+;	-----------------------------------------
+;	 function disable_timer0
+;	-----------------------------------------
+_disable_timer0:
+;	src/timer.c:25: TR0  = 0;
+	clr	_TR0
+;	src/timer.c:26: ET0  = 0;
+	clr	_ET0
+;	src/timer.c:27: P2_1 = 0;
+	clr	_P2_1
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'IR_Send'
+;------------------------------------------------------------
+;byte                      Allocated to registers 
+;------------------------------------------------------------
+;	src/timer.c:34: void IR_Send(unsigned char byte)
+;	-----------------------------------------
+;	 function IR_Send
+;	-----------------------------------------
+_IR_Send:
+	mov	_ir_byte,dpl
+;	src/timer.c:37: fsm_trigger = 1;
+	setb	_fsm_trigger
+	ret
+;------------------------------------------------------------
 ;Allocation info for local variables in function 'TIMER0_Init'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/timer.c:6: void TIMER0_Init(void)
+;	src/timer.c:42: void TIMER0_Init(void)
 ;	-----------------------------------------
 ;	 function TIMER0_Init
 ;	-----------------------------------------
 _TIMER0_Init:
-	using	0
-;	src/timer.c:8: TR0 = 0; // Stop Timer 0 during setup
+;	src/timer.c:44: TR0 = 0; // Stop Timer 0 during setup
 	clr	_TR0
-;	src/timer.c:9: TMOD &= 0b_1111_0000; // Set the bits of Timer/Counter 0 to zero
+;	src/timer.c:45: TMOD &= 0b_1111_0000; // Set the bits of Timer/Counter 0 to zero
 	anl	_TMOD,#0xF0
-;	src/timer.c:10: TMOD |= 0b_0000_0001; // Timer/Counter 0 used as a 16-bit timer
+;	src/timer.c:46: TMOD |= 0b_0000_0001; // Timer/Counter 0 used as a 16-bit timer
 	orl	_TMOD,#0x01
-;	src/timer.c:11: CKCON0 &= 0b_1111_1000; // Reset timer 0 setup
+;	src/timer.c:47: CKCON0 &= 0b_1111_1000; // Reset timer 0 setup
 	anl	_CKCON0,#0xF8
-;	src/timer.c:12: CKCON0 |= 0b_0000_0100;  // Timer 0 uses sysclk
+;	src/timer.c:48: CKCON0 |= 0b_0000_0100; // Timer 0 uses sysclk
 	orl	_CKCON0,#0x04
-;	src/timer.c:14: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+;	src/timer.c:50: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
 	mov	_TH0,#0xFC
-;	src/timer.c:15: TL0 = TIMER0_RELOAD & 0xFF;
+;	src/timer.c:51: TL0 = TIMER0_RELOAD & 0xFF;
 	mov	_TL0,#0x4C
-;	src/timer.c:16: TF0 = 0; // Clear pending overflow flag
+;	src/timer.c:52: TF0 = 0; // Clear pending overflow flag
 	clr	_TF0
-;	src/timer.c:19: ET0 = 1;
-	setb	_ET0
-;	src/timer.c:20: EA  = 1;
+;	src/timer.c:54: ET0 = 0; // Interrupt disabled — FSM will enable when needed
+	clr	_ET0
+;	src/timer.c:55: EA  = 1;
 	setb	_EA
-;	src/timer.c:21: TR0 = 1; // Start Timer 0
-	setb	_TR0
+;	src/timer.c:56: TR0 = 0; // Timer 0 starts stopped; FSM controls it
+	clr	_TR0
 	ret
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'Timer0_ISR'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/timer.c:24: void Timer0_ISR(void) __interrupt (1)
+;	src/timer.c:59: void Timer0_ISR(void) __interrupt (1)
 ;	-----------------------------------------
 ;	 function Timer0_ISR
 ;	-----------------------------------------
 _Timer0_ISR:
-;	src/timer.c:27: TR0 = 0;
+;	src/timer.c:62: TR0 = 0;
 	clr	_TR0
-;	src/timer.c:28: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+;	src/timer.c:63: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
 	mov	_TH0,#0xFC
-;	src/timer.c:29: TL0 = TIMER0_RELOAD & 0xFF;
+;	src/timer.c:64: TL0 = TIMER0_RELOAD & 0xFF;
 	mov	_TL0,#0x4C
-;	src/timer.c:30: P2_1 = !P2_1;
+;	src/timer.c:65: P2_1 = !P2_1;
 	cpl	_P2_1
-;	src/timer.c:31: TR0 = 1;
+;	src/timer.c:66: TR0 = 1;
 	setb	_TR0
 	reti
 ;	eliminated unneeded push/pop psw
@@ -605,121 +686,237 @@ _Timer0_ISR:
 ;Allocation info for local variables in function 'TIMER2_Init'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/timer.c:34: void TIMER2_Init(void){
+;	src/timer.c:69: void TIMER2_Init(void){
 ;	-----------------------------------------
 ;	 function TIMER2_Init
 ;	-----------------------------------------
 _TIMER2_Init:
-;	src/timer.c:35: TR2 = 0;
+;	src/timer.c:70: TR2 = 0;
 	clr	_TR2
-;	src/timer.c:36: CKCON0 |= 0b_0011_0000; // set Timer 2 to be using sysclk
+;	src/timer.c:71: CKCON0 |= 0b_0011_0000; // set Timer 2 to be using sysclk
 	orl	_CKCON0,#0x30
-;	src/timer.c:37: T2SPLIT = 0;
+;	src/timer.c:72: T2SPLIT = 0;
 	clr	_T2SPLIT
-;	src/timer.c:38: TMR2RLH = (TIMER2_RELOAD >> 8) &0xFF;
+;	src/timer.c:73: TMR2RLH = (TIMER2_RELOAD >> 8) &0xFF;
 	mov	_TMR2RLH,#0xB5
-;	src/timer.c:39: TMR2RLL = TIMER2_RELOAD & 0xFF;
+;	src/timer.c:74: TMR2RLL = TIMER2_RELOAD & 0xFF;
 	mov	_TMR2RLL,#0xFC
-;	src/timer.c:40: TMR2H = (TIMER2_RELOAD >> 8) &0xFF;
+;	src/timer.c:75: TMR2H = (TIMER2_RELOAD >> 8) &0xFF;
 	mov	_TMR2H,#0xB5
-;	src/timer.c:41: TMR2L = TIMER2_RELOAD & 0xFF;
+;	src/timer.c:76: TMR2L = TIMER2_RELOAD & 0xFF;
 	mov	_TMR2L,#0xFC
-;	src/timer.c:44: ET2 = 1;
+;	src/timer.c:79: ET2 = 1;
 	setb	_ET2
-;	src/timer.c:45: EA = 1;
+;	src/timer.c:80: EA = 1;
 	setb	_EA
-;	src/timer.c:46: TR2 = 1; // start timer 2
+;	src/timer.c:81: TR2 = 1; // start timer 2
 	setb	_TR2
 	ret
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'Timer2_ISR'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/timer.c:49: void Timer2_ISR(void) __interrupt (5)
+;	src/timer.c:84: void Timer2_ISR(void) __interrupt (5)
 ;	-----------------------------------------
 ;	 function Timer2_ISR
 ;	-----------------------------------------
 _Timer2_ISR:
-;	src/timer.c:51: TR2 = 0; // stop timer 2
+	push	bits
+	push	acc
+	push	b
+	push	dpl
+	push	dph
+	push	(0+2)
+	push	(0+3)
+	push	(0+4)
+	push	(0+5)
+	push	(0+6)
+	push	(0+7)
+	push	(0+0)
+	push	(0+1)
+	push	psw
+	mov	psw,#0x00
+;	src/timer.c:86: TR2  = 0; // stop timer 2
 	clr	_TR2
-;	src/timer.c:52: ET2 = 0; // disable interrupt
+;	src/timer.c:87: ET2  = 0; // disable timer 2 interrupt
 	clr	_ET2
-;	src/timer.c:53: TF2H = 0;
+;	src/timer.c:88: TF2H = 0; // clear overflow flag
 	clr	_TF2H
-;	src/timer.c:55: P2_2 = !P2_2; // toggle p2.2 for oscilloscope debugging purpose
+;	src/timer.c:90: P2_2 = !P2_2; // debug toggle on P2.2
 	cpl	_P2_2
-;	src/timer.c:57: if (TR0)
-;	src/timer.c:59: TR0 = 0;
-	jbc	_TR0,L005007?
-	sjmp	L005002?
-L005007?:
-;	src/timer.c:60: ET0 = 0;
-	clr	_ET0
-;	src/timer.c:61: P2_1 = 0;
-	clr	_P2_1
-	sjmp	L005003?
-L005002?:
-;	src/timer.c:65: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
-	mov	_TH0,#0xFC
-;	src/timer.c:66: TL0 = TIMER0_RELOAD & 0xFF;
-	mov	_TL0,#0x4C
-;	src/timer.c:67: TF0 = 0;
-	clr	_TF0
-;	src/timer.c:68: ET0 = 1;
-	setb	_ET0
-;	src/timer.c:69: TR0 = 1;
-	setb	_TR0
-L005003?:
-;	src/timer.c:72: ET2 = 1;
+;	src/timer.c:93: if (fsm_state == FSM_IDLE)
+	mov	a,#0x0B
+	cjne	a,_fsm_state,L008004?
+;	src/timer.c:95: if (fsm_trigger)
+;	src/timer.c:97: fsm_trigger = 0;
+	jbc	_fsm_trigger,L008030?
+	sjmp	L008004?
+L008030?:
+;	src/timer.c:98: fsm_state   = 0; // kick off transmission
+	mov	_fsm_state,#0x00
+L008004?:
+;	src/timer.c:102: switch (fsm_state)
+	mov	a,_fsm_state
+	mov	r2,a
+	add	a,#0xff - 0x0B
+	jnc	L008031?
+	ljmp	L008021?
+L008031?:
+	mov	a,r2
+	add	a,r2
+	add	a,r2
+	mov	dptr,#L008032?
+	jmp	@a+dptr
+L008032?:
+	ljmp	L008005?
+	ljmp	L008006?
+	ljmp	L008007?
+	ljmp	L008008?
+	ljmp	L008009?
+	ljmp	L008010?
+	ljmp	L008011?
+	ljmp	L008012?
+	ljmp	L008013?
+	ljmp	L008017?
+	ljmp	L008018?
+	ljmp	L008019?
+;	src/timer.c:104: case 0: // start burst — always on
+L008005?:
+;	src/timer.c:105: enable_timer0();
+	lcall	_enable_timer0
+;	src/timer.c:106: fsm_state = 1;
+	mov	_fsm_state,#0x01
+;	src/timer.c:107: break;
+;	src/timer.c:109: case 1: case 2: case 3: case 4:
+	sjmp	L008021?
+L008006?:
+L008007?:
+L008008?:
+L008009?:
+;	src/timer.c:110: case 5: case 6: case 7: case 8:
+L008010?:
+L008011?:
+L008012?:
+L008013?:
+;	src/timer.c:112: if (ir_byte & (1 << (fsm_state - 1)))
+	mov	r2,_fsm_state
+	mov	r3,#0x00
+	dec	r2
+	cjne	r2,#0xff,L008033?
+	dec	r3
+L008033?:
+	mov	b,r2
+	inc	b
+	mov	r2,#0x01
+	mov	r3,#0x00
+	sjmp	L008035?
+L008034?:
+	mov	a,r2
+	add	a,r2
+	mov	r2,a
+	mov	a,r3
+	rlc	a
+	mov	r3,a
+L008035?:
+	djnz	b,L008034?
+	mov	r4,_ir_byte
+	mov	r5,#0x00
+	mov	a,r4
+	anl	ar2,a
+	mov	a,r5
+	anl	ar3,a
+	mov	a,r2
+	orl	a,r3
+	jz	L008015?
+;	src/timer.c:113: enable_timer0();
+	lcall	_enable_timer0
+	sjmp	L008016?
+L008015?:
+;	src/timer.c:115: disable_timer0();
+	lcall	_disable_timer0
+L008016?:
+;	src/timer.c:116: fsm_state++;
+	inc	_fsm_state
+;	src/timer.c:117: break;
+;	src/timer.c:119: case 9: // end burst — always on
+	sjmp	L008021?
+L008017?:
+;	src/timer.c:120: enable_timer0();
+	lcall	_enable_timer0
+;	src/timer.c:121: fsm_state = 10;
+	mov	_fsm_state,#0x0A
+;	src/timer.c:122: break;
+;	src/timer.c:124: case 10: // final silence — always off
+	sjmp	L008021?
+L008018?:
+;	src/timer.c:125: disable_timer0();
+	lcall	_disable_timer0
+;	src/timer.c:126: fsm_state = FSM_IDLE;
+	mov	_fsm_state,#0x0B
+;	src/timer.c:127: break;
+;	src/timer.c:129: case FSM_IDLE:
+;	src/timer.c:133: }
+L008019?:
+L008021?:
+;	src/timer.c:136: ET2 = 1;
 	setb	_ET2
-;	src/timer.c:73: TR2 = 1;
+;	src/timer.c:137: TR2 = 1;
 	setb	_TR2
+	pop	psw
+	pop	(0+1)
+	pop	(0+0)
+	pop	(0+7)
+	pop	(0+6)
+	pop	(0+5)
+	pop	(0+4)
+	pop	(0+3)
+	pop	(0+2)
+	pop	dph
+	pop	dpl
+	pop	b
+	pop	acc
+	pop	bits
 	reti
-;	eliminated unneeded push/pop psw
-;	eliminated unneeded push/pop dpl
-;	eliminated unneeded push/pop dph
-;	eliminated unneeded push/pop b
-;	eliminated unneeded push/pop acc
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'Timer3us'
 ;------------------------------------------------------------
 ;us                        Allocated to registers r2 
 ;i                         Allocated to registers r3 
 ;------------------------------------------------------------
-;	src/timer.c:79: void Timer3us(unsigned char us)
+;	src/timer.c:142: void Timer3us(unsigned char us)
 ;	-----------------------------------------
 ;	 function Timer3us
 ;	-----------------------------------------
 _Timer3us:
 	mov	r2,dpl
-;	src/timer.c:84: CKCON0|=0b_0100_0000;
+;	src/timer.c:147: CKCON0|=0b_0100_0000;
 	orl	_CKCON0,#0x40
-;	src/timer.c:86: TMR3RL = (-(SYSCLK)/1000000L); // Set Timer3 to overflow in 1us.
-	mov	_TMR3RL,#0xB4
+;	src/timer.c:149: TMR3RL = (-(SYSCLK)/1000000L); // Set Timer3 to overflow in 1us.
+	mov	_TMR3RL,#0xB8
 	mov	(_TMR3RL >> 8),#0xFF
-;	src/timer.c:87: TMR3 = TMR3RL;                 // Initialize Timer3 for first overflow
+;	src/timer.c:150: TMR3 = TMR3RL;                 // Initialize Timer3 for first overflow
 	mov	_TMR3,_TMR3RL
 	mov	(_TMR3 >> 8),(_TMR3RL >> 8)
-;	src/timer.c:89: TMR3CN0 = 0x04;                 // Sart Timer3 and clear overflow flag
+;	src/timer.c:152: TMR3CN0 = 0x04;                 // Sart Timer3 and clear overflow flag
 	mov	_TMR3CN0,#0x04
-;	src/timer.c:90: for (i = 0; i < us; i++)       // Count <us> overflows
+;	src/timer.c:153: for (i = 0; i < us; i++)       // Count <us> overflows
 	mov	r3,#0x00
-L006004?:
+L009004?:
 	clr	c
 	mov	a,r3
 	subb	a,r2
-	jnc	L006007?
-;	src/timer.c:92: while (!(TMR3CN0 & 0x80));  // Wait for overflow
-L006001?:
+	jnc	L009007?
+;	src/timer.c:155: while (!(TMR3CN0 & 0x80));  // Wait for overflow
+L009001?:
 	mov	a,_TMR3CN0
-	jnb	acc.7,L006001?
-;	src/timer.c:93: TMR3CN0 &= ~(0x80);         // Clear overflow indicator
+	jnb	acc.7,L009001?
+;	src/timer.c:156: TMR3CN0 &= ~(0x80);         // Clear overflow indicator
 	anl	_TMR3CN0,#0x7F
-;	src/timer.c:90: for (i = 0; i < us; i++)       // Count <us> overflows
+;	src/timer.c:153: for (i = 0; i < us; i++)       // Count <us> overflows
 	inc	r3
-	sjmp	L006004?
-L006007?:
-;	src/timer.c:95: TMR3CN0 = 0 ;                   // Stop Timer3 and clear overflow flag
+	sjmp	L009004?
+L009007?:
+;	src/timer.c:158: TMR3CN0 = 0 ;                   // Stop Timer3 and clear overflow flag
 	mov	_TMR3CN0,#0x00
 	ret
 ;------------------------------------------------------------
@@ -729,29 +926,29 @@ L006007?:
 ;j                         Allocated to registers r4 r5 
 ;k                         Allocated to registers r6 
 ;------------------------------------------------------------
-;	src/timer.c:98: void waitms (unsigned int ms)
+;	src/timer.c:161: void waitms (unsigned int ms)
 ;	-----------------------------------------
 ;	 function waitms
 ;	-----------------------------------------
 _waitms:
 	mov	r2,dpl
 	mov	r3,dph
-;	src/timer.c:102: for(j=0; j<ms; j++)
+;	src/timer.c:165: for(j=0; j<ms; j++)
 	mov	r4,#0x00
 	mov	r5,#0x00
-L007005?:
+L010005?:
 	clr	c
 	mov	a,r4
 	subb	a,r2
 	mov	a,r5
 	subb	a,r3
-	jnc	L007009?
-;	src/timer.c:103: for (k=0; k<4; k++) Timer3us(250);
+	jnc	L010009?
+;	src/timer.c:166: for (k=0; k<4; k++) Timer3us(250);
 	mov	r6,#0x00
-L007001?:
-	cjne	r6,#0x04,L007018?
-L007018?:
-	jnc	L007007?
+L010001?:
+	cjne	r6,#0x04,L010018?
+L010018?:
+	jnc	L010007?
 	mov	dpl,#0xFA
 	push	ar2
 	push	ar3
@@ -765,14 +962,14 @@ L007018?:
 	pop	ar3
 	pop	ar2
 	inc	r6
-	sjmp	L007001?
-L007007?:
-;	src/timer.c:102: for(j=0; j<ms; j++)
+	sjmp	L010001?
+L010007?:
+;	src/timer.c:165: for(j=0; j<ms; j++)
 	inc	r4
-	cjne	r4,#0x00,L007005?
+	cjne	r4,#0x00,L010005?
 	inc	r5
-	sjmp	L007005?
-L007009?:
+	sjmp	L010005?
+L010009?:
 	ret
 	rseg R_CSEG
 

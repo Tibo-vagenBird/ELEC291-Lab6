@@ -3,7 +3,7 @@
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
 ; This file was generated Mon Mar 09 10:59:38 2026
 ;--------------------------------------------------------
-$name bootloader
+$name uart
 $optc51 --model-small
 	R_DSEG    segment data
 	R_CSEG    segment code
@@ -23,8 +23,18 @@ $optc51 --model-small
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
-	public __c51_external_startup
-	public _init_pin_input
+	public _UART1_ISR
+	public _UART0_ISR
+	public _UART_init
+	public _UART_send_char
+	public _UART_send_string
+	public _UART_available
+	public _UART_read
+	public _UART1_init
+	public _UART1_send_char
+	public _UART1_send_string
+	public _UART1_available
+	public _UART1_read
 ;--------------------------------------------------------
 ; Special Function Registers
 ;--------------------------------------------------------
@@ -473,10 +483,29 @@ _TFRQ           BIT 0xdf
 ; internal ram data
 ;--------------------------------------------------------
 	rseg R_DSEG
+_tx0_head:
+	ds 1
+_tx0_tail:
+	ds 1
+_rx0_head:
+	ds 1
+_rx0_tail:
+	ds 1
+_tx1_head:
+	ds 1
+_tx1_tail:
+	ds 1
+_rx1_head:
+	ds 1
+_rx1_tail:
+	ds 1
 ;--------------------------------------------------------
 ; overlayable items in internal ram 
 ;--------------------------------------------------------
-	rseg R_OSEG
+	rseg	R_OSEG
+	rseg	R_OSEG
+	rseg	R_OSEG
+	rseg	R_OSEG
 ;--------------------------------------------------------
 ; indirectly addressable internal ram data
 ;--------------------------------------------------------
@@ -489,6 +518,14 @@ _TFRQ           BIT 0xdf
 ; bit data
 ;--------------------------------------------------------
 	rseg R_BSEG
+_tx0_busy:
+	DBIT	1
+_UART_available_sloc0_1_0:
+	DBIT	1
+_tx1_busy:
+	DBIT	1
+_UART1_available_sloc0_1_0:
+	DBIT	1
 ;--------------------------------------------------------
 ; paged external ram data
 ;--------------------------------------------------------
@@ -497,6 +534,14 @@ _TFRQ           BIT 0xdf
 ; external ram data
 ;--------------------------------------------------------
 	rseg R_XSEG
+_tx0_buf:
+	ds 64
+_rx0_buf:
+	ds 64
+_tx1_buf:
+	ds 64
+_rx1_buf:
+	ds 64
 ;--------------------------------------------------------
 ; absolute external ram data
 ;--------------------------------------------------------
@@ -511,6 +556,10 @@ _TFRQ           BIT 0xdf
 ;--------------------------------------------------------
 ; Interrupt vectors
 ;--------------------------------------------------------
+	CSEG at 0x0023
+	ljmp	_UART0_ISR
+	CSEG at 0x007b
+	ljmp	_UART1_ISR
 ;--------------------------------------------------------
 ; global & static initialisations
 ;--------------------------------------------------------
@@ -521,97 +570,578 @@ _TFRQ           BIT 0xdf
 ; data variables initialization
 ;--------------------------------------------------------
 	rseg R_DINIT
+;	src/uart.c:32: static unsigned char tx0_head = 0;
+	mov	_tx0_head,#0x00
+;	src/uart.c:33: static unsigned char tx0_tail = 0;
+	mov	_tx0_tail,#0x00
+;	src/uart.c:37: static unsigned char rx0_head = 0;
+	mov	_rx0_head,#0x00
+;	src/uart.c:38: static unsigned char rx0_tail = 0;
+	mov	_rx0_tail,#0x00
+;	src/uart.c:139: static unsigned char tx1_head = 0;
+	mov	_tx1_head,#0x00
+;	src/uart.c:140: static unsigned char tx1_tail = 0;
+	mov	_tx1_tail,#0x00
+;	src/uart.c:144: static unsigned char rx1_head = 0;
+	mov	_rx1_head,#0x00
+;	src/uart.c:145: static unsigned char rx1_tail = 0;
+	mov	_rx1_tail,#0x00
+;	src/uart.c:34: static bit           tx0_busy = 0;
+	clr	_tx0_busy
+;	src/uart.c:141: static bit           tx1_busy = 0;
+	clr	_tx1_busy
 	; The linker places a 'ret' at the end of segment R_DINIT.
 ;--------------------------------------------------------
 ; code
 ;--------------------------------------------------------
 	rseg R_CSEG
 ;------------------------------------------------------------
-;Allocation info for local variables in function '_c51_external_startup'
+;Allocation info for local variables in function 'UART_init'
 ;------------------------------------------------------------
+;saved_page                Allocated to registers r2 
 ;------------------------------------------------------------
-;	src/bootloader.c:5: char _c51_external_startup (void)
+;	src/uart.c:40: void UART_init(void)
 ;	-----------------------------------------
-;	 function _c51_external_startup
+;	 function UART_init
 ;	-----------------------------------------
-__c51_external_startup:
+_UART_init:
 	using	0
-;	src/bootloader.c:8: SFRPAGE = 0x00;
+;	src/uart.c:42: unsigned char saved_page = SFRPAGE;
+	mov	r2,_SFRPAGE
+;	src/uart.c:43: SFRPAGE = UART0_PAGE;
 	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:9: WDTCN = 0xDE; //First key
-	mov	_WDTCN,#0xDE
-;	src/bootloader.c:10: WDTCN = 0xAD; //Second key
-	mov	_WDTCN,#0xAD
-;	src/bootloader.c:12: VDM0CN |= 0x80;       // enable VDD monitor
-	orl	_VDM0CN,#0x80
-;	src/bootloader.c:13: RSTSRC = 0x02;  // Enable reset on missing clock detector and VDD
-	mov	_RSTSRC,#0x02
-;	src/bootloader.c:20: SFRPAGE = 0x10;
-	mov	_SFRPAGE,#0x10
-;	src/bootloader.c:21: PFE0CN  = 0x20; // SYSCLK < 75 MHz.
-	mov	_PFE0CN,#0x20
-;	src/bootloader.c:22: SFRPAGE = 0x00;
-	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:43: CLKSEL = 0x00;
-	mov	_CLKSEL,#0x00
-;	src/bootloader.c:44: CLKSEL = 0x00;
-	mov	_CLKSEL,#0x00
-;	src/bootloader.c:45: while ((CLKSEL & 0x80) == 0);
-L002001?:
-	mov	a,_CLKSEL
-	jnb	acc.7,L002001?
-;	src/bootloader.c:46: CLKSEL = 0x03;
-	mov	_CLKSEL,#0x03
-;	src/bootloader.c:47: CLKSEL = 0x03;
-	mov	_CLKSEL,#0x03
-;	src/bootloader.c:48: while ((CLKSEL & 0x80) == 0);
-L002004?:
-	mov	a,_CLKSEL
-	jnb	acc.7,L002004?
-;	src/bootloader.c:53: SFRPAGE = 0x00;
-	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:54: P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output P0.4, P0.2
-	orl	_P0MDOUT,#0x14
-;	src/bootloader.c:55: P0SKIP = 0xC3;
-	mov	_P0SKIP,#0xC3
-;	src/bootloader.c:56: XBR0     = 0x01; // Enable UART0 on P0.4(TX) and P0.5(RX)
-	mov	_XBR0,#0x01
-;	src/bootloader.c:57: XBR1     = 0x00;
-	mov	_XBR1,#0x00
-;	src/bootloader.c:58: XBR2     = 0x41; // Enable crossbar (bit6), enable UART1 (bit0) on 
-	mov	_XBR2,#0x41
-;	src/bootloader.c:59: SFRPAGE = 0x00;
-	mov	_SFRPAGE,#0x00
-;	src/bootloader.c:61: return 0;
-	mov	dpl,#0x00
+;	src/uart.c:50: TMOD = (TMOD & 0x0Fu) | 0x20u;
+	mov	r3,_TMOD
+	anl	ar3,#0x0F
+	orl	ar3,#0x20
+	mov	_TMOD,r3
+;	src/uart.c:51: TH1  = (unsigned char)(0x100u - (SYSCLK / BAUDRATE) / (2L * 12L));
+	mov	_TH1,#0xE6
+;	src/uart.c:52: TL1  = TH1;
+	mov	_TL1,_TH1
+;	src/uart.c:53: TR1  = 1;
+	setb	_TR1
+;	src/uart.c:56: SCON0 = 0x10u;
+	mov	_SCON0,#0x10
+;	src/uart.c:58: ES0 = 1;    /* enable UART0 interrupt */
+	setb	_ES0
+;	src/uart.c:59: EA  = 1;    /* global interrupt enable */
+	setb	_EA
+;	src/uart.c:61: SFRPAGE = saved_page;
+	mov	_SFRPAGE,r2
 	ret
 ;------------------------------------------------------------
-;Allocation info for local variables in function 'init_pin_input'
+;Allocation info for local variables in function 'UART0_ISR'
+;------------------------------------------------------------
+;saved_page                Allocated to registers r2 
+;------------------------------------------------------------
+;	src/uart.c:64: void UART0_ISR(void) __interrupt(4)
+;	-----------------------------------------
+;	 function UART0_ISR
+;	-----------------------------------------
+_UART0_ISR:
+	push	acc
+	push	dpl
+	push	dph
+	push	ar2
+	push	ar3
+	push	psw
+	mov	psw,#0x00
+;	src/uart.c:66: unsigned char saved_page = SFRPAGE;
+	mov	r2,_SFRPAGE
+;	src/uart.c:67: SFRPAGE = UART0_PAGE;
+	mov	_SFRPAGE,#0x00
+;	src/uart.c:69: if (RI) {
+;	src/uart.c:70: RI = 0;
+	jbc	_RI,L003013?
+	sjmp	L003002?
+L003013?:
+;	src/uart.c:71: rx0_buf[rx0_head] = SBUF0;
+	mov	a,_rx0_head
+	add	a,#_rx0_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_rx0_buf >> 8)
+	mov	dph,a
+	mov	a,_SBUF0
+	mov	r3,a
+	movx	@dptr,a
+;	src/uart.c:72: rx0_head = BUF_NEXT(rx0_head, RX0_MASK);
+	mov	a,_rx0_head
+	inc	a
+	anl	a,#0x3F
+	mov	_rx0_head,a
+L003002?:
+;	src/uart.c:75: if (TI) {
+;	src/uart.c:76: TI = 0;
+	jbc	_TI,L003014?
+	sjmp	L003007?
+L003014?:
+;	src/uart.c:77: if (tx0_tail != tx0_head) {
+	mov	a,_tx0_head
+	cjne	a,_tx0_tail,L003015?
+	sjmp	L003004?
+L003015?:
+;	src/uart.c:78: SBUF0    = tx0_buf[tx0_tail];
+	mov	a,_tx0_tail
+	add	a,#_tx0_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_tx0_buf >> 8)
+	mov	dph,a
+	movx	a,@dptr
+	mov	_SBUF0,a
+;	src/uart.c:79: tx0_tail = BUF_NEXT(tx0_tail, TX0_MASK);
+	mov	a,_tx0_tail
+	inc	a
+	anl	a,#0x3F
+	mov	_tx0_tail,a
+	sjmp	L003007?
+L003004?:
+;	src/uart.c:81: tx0_busy = 0;
+	clr	_tx0_busy
+L003007?:
+;	src/uart.c:85: SFRPAGE = saved_page;
+	mov	_SFRPAGE,r2
+	pop	psw
+	pop	ar3
+	pop	ar2
+	pop	dph
+	pop	dpl
+	pop	acc
+	reti
+;	eliminated unneeded push/pop b
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART_send_char'
+;------------------------------------------------------------
+;c                         Allocated to registers r2 
+;saved_page                Allocated to registers r3 
+;------------------------------------------------------------
+;	src/uart.c:88: void UART_send_char(char c)
+;	-----------------------------------------
+;	 function UART_send_char
+;	-----------------------------------------
+_UART_send_char:
+	mov	r2,dpl
+;	src/uart.c:90: unsigned char saved_page = SFRPAGE;
+	mov	r3,_SFRPAGE
+;	src/uart.c:91: SFRPAGE = UART0_PAGE;
+	mov	_SFRPAGE,#0x00
+;	src/uart.c:94: while (BUF_NEXT(tx0_head, TX0_MASK) == tx0_tail);
+L004001?:
+	mov	r4,_tx0_head
+	mov	r5,#0x00
+	inc	r4
+	cjne	r4,#0x00,L004011?
+	inc	r5
+L004011?:
+	anl	ar4,#0x3F
+	mov	r5,#0x00
+	mov	r6,_tx0_tail
+	mov	r7,#0x00
+	mov	a,r4
+	cjne	a,ar6,L004012?
+	mov	a,r5
+	cjne	a,ar7,L004012?
+	sjmp	L004001?
+L004012?:
+;	src/uart.c:96: EA = 0;
+	clr	_EA
+;	src/uart.c:97: tx0_buf[tx0_head] = c;
+	mov	a,_tx0_head
+	add	a,#_tx0_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_tx0_buf >> 8)
+	mov	dph,a
+	mov	a,r2
+	movx	@dptr,a
+;	src/uart.c:98: tx0_head = BUF_NEXT(tx0_head, TX0_MASK);
+	mov	a,_tx0_head
+	inc	a
+	anl	a,#0x3F
+	mov	_tx0_head,a
+;	src/uart.c:99: if (!tx0_busy) {
+	jb	_tx0_busy,L004005?
+;	src/uart.c:100: tx0_busy = 1;
+	setb	_tx0_busy
+;	src/uart.c:101: TI = 1;     /* kick-start TX ISR */
+	setb	_TI
+L004005?:
+;	src/uart.c:103: EA = 1;
+	setb	_EA
+;	src/uart.c:105: SFRPAGE = saved_page;
+	mov	_SFRPAGE,r3
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART_send_string'
+;------------------------------------------------------------
+;s                         Allocated to registers r2 r3 r4 
+;------------------------------------------------------------
+;	src/uart.c:108: void UART_send_string(const char *s)
+;	-----------------------------------------
+;	 function UART_send_string
+;	-----------------------------------------
+_UART_send_string:
+	mov	r2,dpl
+	mov	r3,dph
+	mov	r4,b
+;	src/uart.c:110: while (*s)
+L005001?:
+	mov	dpl,r2
+	mov	dph,r3
+	mov	b,r4
+	lcall	__gptrget
+	mov	r5,a
+	jz	L005004?
+;	src/uart.c:111: UART_send_char(*s++);
+	mov	dpl,r5
+	inc	r2
+	cjne	r2,#0x00,L005010?
+	inc	r3
+L005010?:
+	push	ar2
+	push	ar3
+	push	ar4
+	lcall	_UART_send_char
+	pop	ar4
+	pop	ar3
+	pop	ar2
+	sjmp	L005001?
+L005004?:
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART_available'
 ;------------------------------------------------------------
 ;------------------------------------------------------------
-;	src/bootloader.c:65: void init_pin_input(void){
+;	src/uart.c:114: bit UART_available(void)
 ;	-----------------------------------------
-;	 function init_pin_input
+;	 function UART_available
 ;	-----------------------------------------
-_init_pin_input:
-;	src/bootloader.c:66: P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
-	orl	_P2MDIN,#0x06
-;	src/bootloader.c:67: P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
-	orl	_P2MDOUT,#0x06
-;	src/bootloader.c:68: P2SKIP |= 0b_0000_0010;
-	orl	_P2SKIP,#0x02
-;	src/bootloader.c:69: P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
-	orl	_P3MDIN,#0x01
-;	src/bootloader.c:70: P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin
-	anl	_P3MDOUT,#0xFE
-;	src/bootloader.c:71: P3 |= 0b_0000_0001;
-	orl	_P3,#0x01
-;	src/bootloader.c:72: XBR2 &= ~0x80;
-	anl	_XBR2,#0x7F
-;	src/bootloader.c:73: XBR2 |= 0x40;
-	orl	_XBR2,#0x40
-;	src/bootloader.c:74: P2_1 = 0;
-	clr	_P2_1
+_UART_available:
+;	src/uart.c:116: return (rx0_head != rx0_tail);
+	mov	a,_rx0_tail
+	cjne	a,_rx0_head,L006003?
+	setb	c
+	sjmp	L006004?
+L006003?:
+	clr	c
+L006004?:
+	mov  _UART_available_sloc0_1_0,c
+	cpl	c
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART_read'
+;------------------------------------------------------------
+;c                         Allocated to registers r2 
+;------------------------------------------------------------
+;	src/uart.c:119: char UART_read(void)
+;	-----------------------------------------
+;	 function UART_read
+;	-----------------------------------------
+_UART_read:
+;	src/uart.c:122: while (!UART_available());
+L007001?:
+	lcall	_UART_available
+	jnc	L007001?
+;	src/uart.c:123: c        = rx0_buf[rx0_tail];
+	mov	a,_rx0_tail
+	add	a,#_rx0_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_rx0_buf >> 8)
+	mov	dph,a
+	movx	a,@dptr
+	mov	r2,a
+;	src/uart.c:124: rx0_tail = BUF_NEXT(rx0_tail, RX0_MASK);
+	mov	a,_rx0_tail
+	inc	a
+	anl	a,#0x3F
+	mov	_rx0_tail,a
+;	src/uart.c:125: return c;
+	mov	dpl,r2
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART1_init'
+;------------------------------------------------------------
+;saved_page                Allocated to registers r2 
+;------------------------------------------------------------
+;	src/uart.c:147: void UART1_init(void)
+;	-----------------------------------------
+;	 function UART1_init
+;	-----------------------------------------
+_UART1_init:
+;	src/uart.c:149: unsigned char saved_page = SFRPAGE;
+	mov	r2,_SFRPAGE
+;	src/uart.c:150: SFRPAGE = UART1_PAGE;
+	mov	_SFRPAGE,#0x20
+;	src/uart.c:153: SCON1  = 0x10u;
+	mov	_SCON1,#0x10
+;	src/uart.c:156: SMOD1  = 0x0Cu;     /* SDL[3:2]=11 = 8-bit data length (matches reset default) */
+	mov	_SMOD1,#0x0C
+;	src/uart.c:157: SBRLH1 = 0xFEu;
+	mov	_SBRLH1,#0xFE
+;	src/uart.c:158: SBRLL1 = 0xC8u;
+	mov	_SBRLL1,#0xC8
+;	src/uart.c:159: SBCON1 = 0x43u;     /* enable baud-rate generator (BCLKEN|SBRUN|BGCLK=SYSCLK) */
+	mov	_SBCON1,#0x43
+;	src/uart.c:162: SFRPAGE = UART0_PAGE;
+	mov	_SFRPAGE,#0x00
+;	src/uart.c:163: EIE2 |= 0x01u;      /* enable UART1 interrupt vector */
+	mov	r3,_EIE2
+	orl	ar3,#0x01
+	mov	_EIE2,r3
+;	src/uart.c:166: SFRPAGE = saved_page;
+	mov	_SFRPAGE,r2
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART1_ISR'
+;------------------------------------------------------------
+;saved_page                Allocated to registers r2 
+;------------------------------------------------------------
+;	src/uart.c:169: void UART1_ISR(void) __interrupt(15)
+;	-----------------------------------------
+;	 function UART1_ISR
+;	-----------------------------------------
+_UART1_ISR:
+	push	acc
+	push	dpl
+	push	dph
+	push	ar2
+	push	ar3
+	push	ar4
+	push	psw
+	mov	psw,#0x00
+;	src/uart.c:171: unsigned char saved_page = SFRPAGE;
+	mov	r2,_SFRPAGE
+;	src/uart.c:172: SFRPAGE = UART1_PAGE;
+	mov	_SFRPAGE,#0x20
+;	src/uart.c:174: if (SCON1 & SCON1_RI_BIT) {
+	mov	r3,_SCON1
+	mov	r4,#0x00
+	mov	a,r3
+	jnb	acc.0,L009002?
+;	src/uart.c:175: SCON1 &= ~SCON1_RI_BIT;
+	anl	_SCON1,#0xFE
+;	src/uart.c:176: rx1_buf[rx1_head] = SBUF1;
+	mov	a,_rx1_head
+	add	a,#_rx1_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_rx1_buf >> 8)
+	mov	dph,a
+	mov	a,_SBUF1
+	mov	r3,a
+	movx	@dptr,a
+;	src/uart.c:177: rx1_head = BUF_NEXT(rx1_head, RX1_MASK);
+	mov	a,_rx1_head
+	inc	a
+	anl	a,#0x3F
+	mov	_rx1_head,a
+L009002?:
+;	src/uart.c:180: if (SCON1 & SCON1_TI_BIT) {
+	mov	r3,_SCON1
+	mov	r4,#0x00
+	mov	a,r3
+	jnb	acc.1,L009007?
+;	src/uart.c:181: SCON1 &= ~SCON1_TI_BIT;
+	anl	_SCON1,#0xFD
+;	src/uart.c:182: if (tx1_tail != tx1_head) {
+	mov	a,_tx1_head
+	cjne	a,_tx1_tail,L009015?
+	sjmp	L009004?
+L009015?:
+;	src/uart.c:183: SBUF1    = tx1_buf[tx1_tail];
+	mov	a,_tx1_tail
+	add	a,#_tx1_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_tx1_buf >> 8)
+	mov	dph,a
+	movx	a,@dptr
+	mov	_SBUF1,a
+;	src/uart.c:184: tx1_tail = BUF_NEXT(tx1_tail, TX1_MASK);
+	mov	a,_tx1_tail
+	inc	a
+	anl	a,#0x3F
+	mov	_tx1_tail,a
+	sjmp	L009007?
+L009004?:
+;	src/uart.c:186: tx1_busy = 0;
+	clr	_tx1_busy
+L009007?:
+;	src/uart.c:190: SFRPAGE = saved_page;
+	mov	_SFRPAGE,r2
+	pop	psw
+	pop	ar4
+	pop	ar3
+	pop	ar2
+	pop	dph
+	pop	dpl
+	pop	acc
+	reti
+;	eliminated unneeded push/pop b
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART1_send_char'
+;------------------------------------------------------------
+;c                         Allocated to registers r2 
+;saved_page                Allocated to registers r3 
+;------------------------------------------------------------
+;	src/uart.c:193: void UART1_send_char(char c)
+;	-----------------------------------------
+;	 function UART1_send_char
+;	-----------------------------------------
+_UART1_send_char:
+	mov	r2,dpl
+;	src/uart.c:195: unsigned char saved_page = SFRPAGE;
+	mov	r3,_SFRPAGE
+;	src/uart.c:197: while (BUF_NEXT(tx1_head, TX1_MASK) == tx1_tail); /* wait for ring buffer space */
+L010001?:
+	mov	r4,_tx1_head
+	mov	r5,#0x00
+	inc	r4
+	cjne	r4,#0x00,L010011?
+	inc	r5
+L010011?:
+	anl	ar4,#0x3F
+	mov	r5,#0x00
+	mov	r6,_tx1_tail
+	mov	r7,#0x00
+	mov	a,r4
+	cjne	a,ar6,L010012?
+	mov	a,r5
+	cjne	a,ar7,L010012?
+	sjmp	L010001?
+L010012?:
+;	src/uart.c:199: EA = 0;
+	clr	_EA
+;	src/uart.c:200: tx1_buf[tx1_head] = c;
+	mov	a,_tx1_head
+	add	a,#_tx1_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_tx1_buf >> 8)
+	mov	dph,a
+	mov	a,r2
+	movx	@dptr,a
+;	src/uart.c:201: tx1_head = BUF_NEXT(tx1_head, TX1_MASK);
+	mov	a,_tx1_head
+	inc	a
+	anl	a,#0x3F
+	mov	_tx1_head,a
+;	src/uart.c:202: if (!tx1_busy) {
+	jb	_tx1_busy,L010005?
+;	src/uart.c:203: tx1_busy = 1;
+	setb	_tx1_busy
+;	src/uart.c:204: SFRPAGE = UART1_PAGE;
+	mov	_SFRPAGE,#0x20
+;	src/uart.c:205: SBUF1 = tx1_buf[tx1_tail];      /* write first byte to TX FIFO — hardware will set TI when done */
+	mov	a,_tx1_tail
+	add	a,#_tx1_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_tx1_buf >> 8)
+	mov	dph,a
+	movx	a,@dptr
+	mov	_SBUF1,a
+;	src/uart.c:206: tx1_tail = BUF_NEXT(tx1_tail, TX1_MASK);
+	mov	a,_tx1_tail
+	inc	a
+	anl	a,#0x3F
+	mov	_tx1_tail,a
+L010005?:
+;	src/uart.c:208: EA = 1;
+	setb	_EA
+;	src/uart.c:210: SFRPAGE = saved_page;
+	mov	_SFRPAGE,r3
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART1_send_string'
+;------------------------------------------------------------
+;s                         Allocated to registers r2 r3 r4 
+;------------------------------------------------------------
+;	src/uart.c:213: void UART1_send_string(const char *s)
+;	-----------------------------------------
+;	 function UART1_send_string
+;	-----------------------------------------
+_UART1_send_string:
+	mov	r2,dpl
+	mov	r3,dph
+	mov	r4,b
+;	src/uart.c:215: while (*s)
+L011001?:
+	mov	dpl,r2
+	mov	dph,r3
+	mov	b,r4
+	lcall	__gptrget
+	mov	r5,a
+	jz	L011004?
+;	src/uart.c:216: UART1_send_char(*s++);
+	mov	dpl,r5
+	inc	r2
+	cjne	r2,#0x00,L011010?
+	inc	r3
+L011010?:
+	push	ar2
+	push	ar3
+	push	ar4
+	lcall	_UART1_send_char
+	pop	ar4
+	pop	ar3
+	pop	ar2
+	sjmp	L011001?
+L011004?:
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART1_available'
+;------------------------------------------------------------
+;------------------------------------------------------------
+;	src/uart.c:219: bit UART1_available(void)
+;	-----------------------------------------
+;	 function UART1_available
+;	-----------------------------------------
+_UART1_available:
+;	src/uart.c:221: return (rx1_head != rx1_tail);
+	mov	a,_rx1_tail
+	cjne	a,_rx1_head,L012003?
+	setb	c
+	sjmp	L012004?
+L012003?:
+	clr	c
+L012004?:
+	mov  _UART1_available_sloc0_1_0,c
+	cpl	c
+	ret
+;------------------------------------------------------------
+;Allocation info for local variables in function 'UART1_read'
+;------------------------------------------------------------
+;c                         Allocated to registers r2 
+;------------------------------------------------------------
+;	src/uart.c:224: char UART1_read(void)
+;	-----------------------------------------
+;	 function UART1_read
+;	-----------------------------------------
+_UART1_read:
+;	src/uart.c:227: while (!UART1_available());
+L013001?:
+	lcall	_UART1_available
+	jnc	L013001?
+;	src/uart.c:228: c        = rx1_buf[rx1_tail];
+	mov	a,_rx1_tail
+	add	a,#_rx1_buf
+	mov	dpl,a
+	clr	a
+	addc	a,#(_rx1_buf >> 8)
+	mov	dph,a
+	movx	a,@dptr
+	mov	r2,a
+;	src/uart.c:229: rx1_tail = BUF_NEXT(rx1_tail, RX1_MASK);
+	mov	a,_rx1_tail
+	inc	a
+	anl	a,#0x3F
+	mov	_rx1_tail,a
+;	src/uart.c:230: return c;
+	mov	dpl,r2
 	ret
 	rseg R_CSEG
 

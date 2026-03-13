@@ -7,7 +7,7 @@
 #include "config.h"
 
 // ---- Global state variables ----
-volatile bit ir_state = 0; // variable for ir message. 0 = wave, 1 = constant
+volatile unsigned char ir_state = 1; // variable for ir message. 0 = wave, 1 = constant
 volatile bit last_ir_state = 0;
 
 void debounce(void){
@@ -49,16 +49,25 @@ void switch_ir_mode(void){
 
 // ---- Main ----
 void main (){
+	int i = 0;
 	init_pin_input();
 	TIMER0_Init();
 	TIMER2_Init();
-	last_ir_state = ir_state;
+	
+
+	IR_Send(0); // default: send 0 on startup
 
 	while(1){
-		debounce();
+		/*
 		if(ir_state != last_ir_state){
-			switch_ir_mode();
+			IR_Send(ir_state); // send 1 when toggled on, 0 when toggled off
+			last_ir_state = ir_state;
 		}
-		last_ir_state = ir_state;
+			*/
+		waitms(500);
+		
+		for (i=0; i<10; i++) {
+			IR_Send(ir_state);
+		}
 	}
 }

@@ -1,7 +1,7 @@
 0000              1   ;--------------------------------------------------------
 0000              2   ; File Created by C51
 0000              3   ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-0000              4   ; This file was generated Sun Mar 08 20:49:10 2026
+0000              4   ; This file was generated Mon Mar 09 12:24:21 2026
 0000              5   ;--------------------------------------------------------
                   5   $name main
                   6   $optc51 --model-small
@@ -476,29 +476,29 @@
 0000            476   ; internal ram data
 0000            477   ;--------------------------------------------------------
 0000            478            rseg R_DSEG
-0000            479   ;--------------------------------------------------------
-0000            480   ; overlayable items in internal ram 
-0000            481   ;--------------------------------------------------------
-0000            482            rseg R_OSEG
-0000            483   ;--------------------------------------------------------
-0000            484   ; indirectly addressable internal ram data
+0000            479   _ir_state:
+0000            480            ds 1
+0001            481   ;--------------------------------------------------------
+0001            482   ; overlayable items in internal ram 
+0001            483   ;--------------------------------------------------------
+0000            484            rseg R_OSEG
 0000            485   ;--------------------------------------------------------
-0000            486            rseg R_ISEG
+0000            486   ; indirectly addressable internal ram data
 0000            487   ;--------------------------------------------------------
-0000            488   ; absolute internal ram data
+0000            488            rseg R_ISEG
 0000            489   ;--------------------------------------------------------
-0000            490            DSEG
+0000            490   ; absolute internal ram data
 0000            491   ;--------------------------------------------------------
-0000            492   ; bit data
+0000            492            DSEG
 0000            493   ;--------------------------------------------------------
-0000            494            rseg R_BSEG
-0000            495   _ir_state:
-0000            496            DBIT    1
-0001            497   _last_ir_state:
-0001            498            DBIT    1
-0002            499   ;--------------------------------------------------------
-0002            500   ; paged external ram data
-0002            501   ;--------------------------------------------------------
+0000            494   ; bit data
+0000            495   ;--------------------------------------------------------
+0000            496            rseg R_BSEG
+0000            497   _last_ir_state:
+0000            498            DBIT    1
+0001            499   ;--------------------------------------------------------
+0001            500   ; paged external ram data
+0001            501   ;--------------------------------------------------------
 0000            502            rseg R_PSEG
 0000            503   ;--------------------------------------------------------
 0000            504   ; external ram data
@@ -530,14 +530,14 @@
 0000            530   ; data variables initialization
 0000            531   ;--------------------------------------------------------
 0000            532            rseg R_DINIT
-0000            533   ;        src/main.c:10: volatile bit ir_state = 0; // variable for ir message. 0 = wave, 1 = constant
-0000 C250       534            clr     _ir_state
-0002            535   ;        src/main.c:11: volatile bit last_ir_state = 0;
-0002 C210       536            clr     _last_ir_state
-0004            537            ; The linker places a 'ret' at the end of segment R_DINIT.
-0004            538   ;--------------------------------------------------------
-0004            539   ; code
-0004            540   ;--------------------------------------------------------
+0000            533   ;        src/main.c:10: volatile unsigned char ir_state = 1; // variable for ir message. 0 = wave, 1 = constant
+0000 758001     534            mov     _ir_state,#0x01
+0003            535   ;        src/main.c:11: volatile bit last_ir_state = 0;
+0003 C240       536            clr     _last_ir_state
+0005            537            ; The linker places a 'ret' at the end of segment R_DINIT.
+0005            538   ;--------------------------------------------------------
+0005            539   ; code
+0005            540   ;--------------------------------------------------------
 0000            541            rseg R_CSEG
 0000            542   ;------------------------------------------------------------
 0000            543   ;Allocation info for local variables in function 'debounce'
@@ -550,106 +550,124 @@
 0000            550   _debounce:
 0000            551            using   0
 0000            552   ;        src/main.c:14: if(P3_0 == 0){
-0000 20B050     553            jb      _P3_0,L002008?
+0000 20B0A8     553            jb      _P3_0,L002008?
 0003            554   ;        src/main.c:15: waitms(50);
 0003 900032     555            mov     dptr,#0x0032
 0006 120000     556            lcall   _waitms
 0009            557   ;        src/main.c:16: if(P3_0 == 0){
-0009 20B050     558            jb      _P3_0,L002008?
+0009 20B0A8     558            jb      _P3_0,L002008?
 000C            559   ;        src/main.c:17: while(P3_0 == 0);
 000C            560   L002001?:
-000C 30B0D0     561            jnb     _P3_0,L002001?
+000C 30B028     561            jnb     _P3_0,L002001?
 000F            562   ;        src/main.c:18: ir_state = !ir_state;
-000F B250       563            cpl     _ir_state
-0011            564   L002008?:
-0011 22         565            ret
-0012            566   ;------------------------------------------------------------
-0012            567   ;Allocation info for local variables in function 'switch_ir_mode'
-0012            568   ;------------------------------------------------------------
-0012            569   ;------------------------------------------------------------
-0012            570   ;        src/main.c:23: void switch_ir_mode(void){
-0012            571   ;        -----------------------------------------
-0012            572   ;         function switch_ir_mode
-0012            573   ;        -----------------------------------------
-0012            574   _switch_ir_mode:
-0012            575   ;        src/main.c:24: if(ir_state){
-0012 305010     576            jnb     _ir_state,L003002?
-0015            577   ;        src/main.c:26: TR2 = 0;
-0015 C2CA       578            clr     _TR2
-0017            579   ;        src/main.c:27: ET2 = 0;
-0017 C2AD       580            clr     _ET2
-0019            581   ;        src/main.c:29: TR0 = 0;
-0019 C28C       582            clr     _TR0
-001B            583   ;        src/main.c:30: ET0 = 0;
-001B C2A9       584            clr     _ET0
-001D            585   ;        src/main.c:31: P2_1 = 0;
-001D C2A1       586            clr     _P2_1
-001F 22         587            ret
-0020            588   L003002?:
-0020            589   ;        src/main.c:35: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
-0020 758CFC     590            mov     _TH0,#0xFC
-0023            591   ;        src/main.c:36: TL0 = TIMER0_RELOAD & 0xFF;
-0023 758A4C     592            mov     _TL0,#0x4C
-0026            593   ;        src/main.c:37: TF0 = 0;
-0026 C28D       594            clr     _TF0
-0028            595   ;        src/main.c:38: ET0 = 1;
-0028 D2A9       596            setb    _ET0
-002A            597   ;        src/main.c:39: TR0 = 1;
-002A D28C       598            setb    _TR0
-002C            599   ;        src/main.c:41: TMR2H = (TIMER2_RELOAD >> 8) & 0xFF;
-002C 75CFB5     600            mov     _TMR2H,#0xB5
-002F            601   ;        src/main.c:42: TMR2L = TIMER2_RELOAD & 0xFF;
-002F 75CEFC     602            mov     _TMR2L,#0xFC
-0032            603   ;        src/main.c:43: TF2H = 0;
-0032 C2CF       604            clr     _TF2H
-0034            605   ;        src/main.c:44: TF2L = 0;
-0034 C2CE       606            clr     _TF2L
-0036            607   ;        src/main.c:45: ET2 = 1;
-0036 D2AD       608            setb    _ET2
-0038            609   ;        src/main.c:46: TR2 = 1;
-0038 D2CA       610            setb    _TR2
-003A 22         611            ret
-003B            612   ;------------------------------------------------------------
-003B            613   ;Allocation info for local variables in function 'main'
-003B            614   ;------------------------------------------------------------
-003B            615   ;------------------------------------------------------------
-003B            616   ;        src/main.c:51: void main (){
-003B            617   ;        -----------------------------------------
-003B            618   ;         function main
-003B            619   ;        -----------------------------------------
-003B            620   _main:
-003B            621   ;        src/main.c:52: init_pin_input();
-003B 120000     622            lcall   _init_pin_input
-003E            623   ;        src/main.c:53: TIMER0_Init();
-003E 120000     624            lcall   _TIMER0_Init
-0041            625   ;        src/main.c:54: TIMER2_Init();
-0041 120000     626            lcall   _TIMER2_Init
-0044            627   ;        src/main.c:55: last_ir_state = ir_state;
-0044 A250       628            mov     c,_ir_state
-0046 9210       629            mov     _last_ir_state,c
-0048            630   ;        src/main.c:57: while(1){
-0048            631   L004004?:
-0048            632   ;        src/main.c:58: debounce();
-0048 120000     633            lcall   _debounce
-004B            634   ;        src/main.c:59: if(ir_state != last_ir_state){
-004B A250       635            mov     c,_ir_state
-004D 201050     636            jb      _last_ir_state,L004010?
-0050 B3         637            cpl     c
-0051            638   L004010?:
-0051 4000       639            jc      L004002?
-0053            640   ;        src/main.c:60: switch_ir_mode();
-0053 120000     641            lcall   _switch_ir_mode
-0056            642   L004002?:
-0056            643   ;        src/main.c:62: last_ir_state = ir_state;
-0056 A250       644            mov     c,_ir_state
-0058 9210       645            mov     _last_ir_state,c
-005A 8000       646            sjmp    L004004?
-005C            647            rseg R_CSEG
-005C            648   
-0000            649            rseg R_XINIT
-0000            650   
-0000            651            rseg R_CONST
-0000            652   
-0003            653            CSEG
-0003            654   
-0003            655   end
+000F E580       563            mov     a,_ir_state
+0011 B40168     564            cjne    a,#0x01,L002016?
+0014            565   L002016?:
+0014 E4         566            clr     a
+0015 33         567            rlc     a
+0016 F580       568            mov     _ir_state,a
+0018            569   L002008?:
+0018 22         570            ret
+0019            571   ;------------------------------------------------------------
+0019            572   ;Allocation info for local variables in function 'switch_ir_mode'
+0019            573   ;------------------------------------------------------------
+0019            574   ;------------------------------------------------------------
+0019            575   ;        src/main.c:23: void switch_ir_mode(void){
+0019            576   ;        -----------------------------------------
+0019            577   ;         function switch_ir_mode
+0019            578   ;        -----------------------------------------
+0019            579   _switch_ir_mode:
+0019            580   ;        src/main.c:24: if(ir_state){
+0019 E580       581            mov     a,_ir_state
+001B 6000       582            jz      L003002?
+001D            583   ;        src/main.c:26: TR2 = 0;
+001D C2CA       584            clr     _TR2
+001F            585   ;        src/main.c:27: ET2 = 0;
+001F C2AD       586            clr     _ET2
+0021            587   ;        src/main.c:29: TR0 = 0;
+0021 C28C       588            clr     _TR0
+0023            589   ;        src/main.c:30: ET0 = 0;
+0023 C2A9       590            clr     _ET0
+0025            591   ;        src/main.c:31: P2_1 = 0;
+0025 C2A1       592            clr     _P2_1
+0027 22         593            ret
+0028            594   L003002?:
+0028            595   ;        src/main.c:35: TH0 = (TIMER0_RELOAD >> 8) & 0xFF;
+0028 758CFC     596            mov     _TH0,#0xFC
+002B            597   ;        src/main.c:36: TL0 = TIMER0_RELOAD & 0xFF;
+002B 758A4C     598            mov     _TL0,#0x4C
+002E            599   ;        src/main.c:37: TF0 = 0;
+002E C28D       600            clr     _TF0
+0030            601   ;        src/main.c:38: ET0 = 1;
+0030 D2A9       602            setb    _ET0
+0032            603   ;        src/main.c:39: TR0 = 1;
+0032 D28C       604            setb    _TR0
+0034            605   ;        src/main.c:41: TMR2H = (TIMER2_RELOAD >> 8) & 0xFF;
+0034 75CFB5     606            mov     _TMR2H,#0xB5
+0037            607   ;        src/main.c:42: TMR2L = TIMER2_RELOAD & 0xFF;
+0037 75CEFC     608            mov     _TMR2L,#0xFC
+003A            609   ;        src/main.c:43: TF2H = 0;
+003A C2CF       610            clr     _TF2H
+003C            611   ;        src/main.c:44: TF2L = 0;
+003C C2CE       612            clr     _TF2L
+003E            613   ;        src/main.c:45: ET2 = 1;
+003E D2AD       614            setb    _ET2
+0040            615   ;        src/main.c:46: TR2 = 1;
+0040 D2CA       616            setb    _TR2
+0042 22         617            ret
+0043            618   ;------------------------------------------------------------
+0043            619   ;Allocation info for local variables in function 'main'
+0043            620   ;------------------------------------------------------------
+0043            621   ;i                         Allocated to registers r2 r3 
+0043            622   ;------------------------------------------------------------
+0043            623   ;        src/main.c:51: void main (){
+0043            624   ;        -----------------------------------------
+0043            625   ;         function main
+0043            626   ;        -----------------------------------------
+0043            627   _main:
+0043            628   ;        src/main.c:53: init_pin_input();
+0043 120000     629            lcall   _init_pin_input
+0046            630   ;        src/main.c:54: TIMER0_Init();
+0046 120000     631            lcall   _TIMER0_Init
+0049            632   ;        src/main.c:55: TIMER2_Init();
+0049 120000     633            lcall   _TIMER2_Init
+004C            634   ;        src/main.c:58: IR_Send(0); // default: send 0 on startup
+004C 758200     635            mov     dpl,#0x00
+004F 120000     636            lcall   _IR_Send
+0052            637   ;        src/main.c:60: while(1){
+0052            638   L004002?:
+0052            639   ;        src/main.c:67: waitms(500);
+0052 9001F4     640            mov     dptr,#0x01F4
+0055 120000     641            lcall   _waitms
+0058            642   ;        src/main.c:69: for (i=0; i<10; i++) {
+0058 7A00       643            mov     r2,#0x00
+005A 7B00       644            mov     r3,#0x00
+005C            645   L004004?:
+005C C3         646            clr     c
+005D EA         647            mov     a,r2
+005E 940A       648            subb    a,#0x0A
+0060 EB         649            mov     a,r3
+0061 6480       650            xrl     a,#0x80
+0063 9480       651            subb    a,#0x80
+0065 5000       652            jnc     L004002?
+0067            653   ;        src/main.c:70: IR_Send(ir_state);
+0067 858082     654            mov     dpl,_ir_state
+006A C002       655            push    ar2
+006C C003       656            push    ar3
+006E 120000     657            lcall   _IR_Send
+0071 D003       658            pop     ar3
+0073 D002       659            pop     ar2
+0075            660   ;        src/main.c:69: for (i=0; i<10; i++) {
+0075 0A         661            inc     r2
+0076 BA0068     662            cjne    r2,#0x00,L004004?
+0079 0B         663            inc     r3
+007A 8000       664            sjmp    L004004?
+007C            665            rseg R_CSEG
+007C            666   
+0000            667            rseg R_XINIT
+0000            668   
+0000            669            rseg R_CONST
+0000            670   
+0003            671            CSEG
+0003            672   
+0003            673   end

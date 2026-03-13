@@ -8,6 +8,8 @@
             ],
             "includePath": [
                 "${workspaceFolder}/inc",
+                "${workspaceFolder}/ELEC291-Lab6/lab/inc",
+                "D:/my51code/51aCode/ELEC291-Lab6/lab/inc",
                 "D:/avr8-gnu-toolchain/avr/include",
                 "D:/avr8-gnu-toolchain/avr/include/avr",
                 "D:/avr8-gnu-toolchain/avr/include/util",

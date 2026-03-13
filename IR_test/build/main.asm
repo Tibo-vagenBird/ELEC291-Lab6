@@ -1,7 +1,7 @@
 ;--------------------------------------------------------
 ; File Created by C51
 ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-; This file was generated Sun Mar 08 20:49:10 2026
+; This file was generated Mon Mar 09 12:24:21 2026
 ;--------------------------------------------------------
 $name main
 $optc51 --model-small
@@ -476,6 +476,8 @@ _TFRQ           BIT 0xdf
 ; internal ram data
 ;--------------------------------------------------------
 	rseg R_DSEG
+_ir_state:
+	ds 1
 ;--------------------------------------------------------
 ; overlayable items in internal ram 
 ;--------------------------------------------------------
@@ -492,8 +494,6 @@ _TFRQ           BIT 0xdf
 ; bit data
 ;--------------------------------------------------------
 	rseg R_BSEG
-_ir_state:
-	DBIT	1
 _last_ir_state:
 	DBIT	1
 ;--------------------------------------------------------
@@ -530,8 +530,8 @@ _last_ir_state:
 ; data variables initialization
 ;--------------------------------------------------------
 	rseg R_DINIT
-;	src/main.c:10: volatile bit ir_state = 0; // variable for ir message. 0 = wave, 1 = constant
-	clr	_ir_state
+;	src/main.c:10: volatile unsigned char ir_state = 1; // variable for ir message. 0 = wave, 1 = constant
+	mov	_ir_state,#0x01
 ;	src/main.c:11: volatile bit last_ir_state = 0;
 	clr	_last_ir_state
 	; The linker places a 'ret' at the end of segment R_DINIT.
@@ -560,7 +560,12 @@ _debounce:
 L002001?:
 	jnb	_P3_0,L002001?
 ;	src/main.c:18: ir_state = !ir_state;
-	cpl	_ir_state
+	mov	a,_ir_state
+	cjne	a,#0x01,L002016?
+L002016?:
+	clr	a
+	rlc	a
+	mov	_ir_state,a
 L002008?:
 	ret
 ;------------------------------------------------------------
@@ -573,7 +578,8 @@ L002008?:
 ;	-----------------------------------------
 _switch_ir_mode:
 ;	src/main.c:24: if(ir_state){
-	jnb	_ir_state,L003002?
+	mov	a,_ir_state
+	jz	L003002?
 ;	src/main.c:26: TR2 = 0;
 	clr	_TR2
 ;	src/main.c:27: ET2 = 0;
@@ -612,37 +618,49 @@ L003002?:
 ;------------------------------------------------------------
 ;Allocation info for local variables in function 'main'
 ;------------------------------------------------------------
+;i                         Allocated to registers r2 r3 
 ;------------------------------------------------------------
 ;	src/main.c:51: void main (){
 ;	-----------------------------------------
 ;	 function main
 ;	-----------------------------------------
 _main:
-;	src/main.c:52: init_pin_input();
+;	src/main.c:53: init_pin_input();
 	lcall	_init_pin_input
-;	src/main.c:53: TIMER0_Init();
+;	src/main.c:54: TIMER0_Init();
 	lcall	_TIMER0_Init
-;	src/main.c:54: TIMER2_Init();
+;	src/main.c:55: TIMER2_Init();
 	lcall	_TIMER2_Init
-;	src/main.c:55: last_ir_state = ir_state;
-	mov	c,_ir_state
-	mov	_last_ir_state,c
-;	src/main.c:57: while(1){
-L004004?:
-;	src/main.c:58: debounce();
-	lcall	_debounce
-;	src/main.c:59: if(ir_state != last_ir_state){
-	mov	c,_ir_state
-	jb	_last_ir_state,L004010?
-	cpl	c
-L004010?:
-	jc	L004002?
-;	src/main.c:60: switch_ir_mode();
-	lcall	_switch_ir_mode
+;	src/main.c:58: IR_Send(0); // default: send 0 on startup
+	mov	dpl,#0x00
+	lcall	_IR_Send
+;	src/main.c:60: while(1){
 L004002?:
-;	src/main.c:62: last_ir_state = ir_state;
-	mov	c,_ir_state
-	mov	_last_ir_state,c
+;	src/main.c:67: waitms(500);
+	mov	dptr,#0x01F4
+	lcall	_waitms
+;	src/main.c:69: for (i=0; i<10; i++) {
+	mov	r2,#0x00
+	mov	r3,#0x00
+L004004?:
+	clr	c
+	mov	a,r2
+	subb	a,#0x0A
+	mov	a,r3
+	xrl	a,#0x80
+	subb	a,#0x80
+	jnc	L004002?
+;	src/main.c:70: IR_Send(ir_state);
+	mov	dpl,_ir_state
+	push	ar2
+	push	ar3
+	lcall	_IR_Send
+	pop	ar3
+	pop	ar2
+;	src/main.c:69: for (i=0; i<10; i++) {
+	inc	r2
+	cjne	r2,#0x00,L004004?
+	inc	r3
 	sjmp	L004004?
 	rseg R_CSEG
 

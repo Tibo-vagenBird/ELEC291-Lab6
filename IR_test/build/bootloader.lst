@@ -1,7 +1,7 @@
 0000              1   ;--------------------------------------------------------
 0000              2   ; File Created by C51
 0000              3   ; Version 1.0.0 #1170 (Feb 16 2022) (MSVC)
-0000              4   ; This file was generated Sun Mar 08 20:37:20 2026
+0000              4   ; This file was generated Mon Mar 09 10:59:38 2026
 0000              5   ;--------------------------------------------------------
                   5   $name bootloader
                   6   $optc51 --model-small
@@ -559,7 +559,7 @@
 001E            559   ;        src/bootloader.c:45: while ((CLKSEL & 0x80) == 0);
 001E            560   L002001?:
 001E E5A9       561            mov     a,_CLKSEL
-0020 30E750     562            jnb     acc.7,L002001?
+0020 30E7C0     562            jnb     acc.7,L002001?
 0023            563   ;        src/bootloader.c:46: CLKSEL = 0x03;
 0023 75A903     564            mov     _CLKSEL,#0x03
 0026            565   ;        src/bootloader.c:47: CLKSEL = 0x03;
@@ -567,50 +567,50 @@
 0029            567   ;        src/bootloader.c:48: while ((CLKSEL & 0x80) == 0);
 0029            568   L002004?:
 0029 E5A9       569            mov     a,_CLKSEL
-002B 30E7D0     570            jnb     acc.7,L002004?
+002B 30E740     570            jnb     acc.7,L002004?
 002E            571   ;        src/bootloader.c:53: SFRPAGE = 0x00;
 002E 75A700     572            mov     _SFRPAGE,#0x00
-0031            573   ;        src/bootloader.c:54: P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output (P0.4)
+0031            573   ;        src/bootloader.c:54: P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output P0.4, P0.2
 0031 43A414     574            orl     _P0MDOUT,#0x14
-0034            575   ;        src/bootloader.c:56: P0SKIP = 0xC3;
+0034            575   ;        src/bootloader.c:55: P0SKIP = 0xC3;
 0034 75D4C3     576            mov     _P0SKIP,#0xC3
-0037            577   ;        src/bootloader.c:57: XBR0     = 0x01; // Enable UART0 on P0.4(TX) and P0.5(RX)
+0037            577   ;        src/bootloader.c:56: XBR0     = 0x01; // Enable UART0 on P0.4(TX) and P0.5(RX)
 0037 75E101     578            mov     _XBR0,#0x01
-003A            579   ;        src/bootloader.c:58: XBR1     = 0x00;
+003A            579   ;        src/bootloader.c:57: XBR1     = 0x00;
 003A 75E200     580            mov     _XBR1,#0x00
-003D            581   ;        src/bootloader.c:59: XBR2     = 0x41; // Enable crossbar (bit6), enable UART1 (bit0) on 
+003D            581   ;        src/bootloader.c:58: XBR2     = 0x41; // Enable crossbar (bit6), enable UART1 (bit0) on 
 003D 75E341     582            mov     _XBR2,#0x41
-0040            583   ;        src/bootloader.c:60: SFRPAGE = 0x00;
+0040            583   ;        src/bootloader.c:59: SFRPAGE = 0x00;
 0040 75A700     584            mov     _SFRPAGE,#0x00
-0043            585   ;        src/bootloader.c:62: return 0;
+0043            585   ;        src/bootloader.c:61: return 0;
 0043 758200     586            mov     dpl,#0x00
 0046 22         587            ret
 0047            588   ;------------------------------------------------------------
 0047            589   ;Allocation info for local variables in function 'init_pin_input'
 0047            590   ;------------------------------------------------------------
 0047            591   ;------------------------------------------------------------
-0047            592   ;        src/bootloader.c:66: void init_pin_input(void){
+0047            592   ;        src/bootloader.c:65: void init_pin_input(void){
 0047            593   ;        -----------------------------------------
 0047            594   ;         function init_pin_input
 0047            595   ;        -----------------------------------------
 0047            596   _init_pin_input:
-0047            597   ;        src/bootloader.c:67: P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
+0047            597   ;        src/bootloader.c:66: P2MDIN |= 0b_0000_0110; // enable p2.1, p2.2 to be digital pin
 0047 43F306     598            orl     _P2MDIN,#0x06
-004A            599   ;        src/bootloader.c:68: P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
+004A            599   ;        src/bootloader.c:67: P2MDOUT |= 0b_0000_0110; // enable p2.1, p2.2 to be output pin 
 004A 43A606     600            orl     _P2MDOUT,#0x06
-004D            601   ;        src/bootloader.c:69: P2SKIP |= 0b_0000_0010;
+004D            601   ;        src/bootloader.c:68: P2SKIP |= 0b_0000_0010;
 004D 43CC02     602            orl     _P2SKIP,#0x02
-0050            603   ;        src/bootloader.c:70: P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
+0050            603   ;        src/bootloader.c:69: P3MDIN |= 0b_0000_0001; // set p3.0 to be digital pin
 0050 43F401     604            orl     _P3MDIN,#0x01
-0053            605   ;        src/bootloader.c:71: P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin
+0053            605   ;        src/bootloader.c:70: P3MDOUT &= 0b_1111_1110; // enable p3.0 to be output pin
 0053 539CFE     606            anl     _P3MDOUT,#0xFE
-0056            607   ;        src/bootloader.c:72: P3 |= 0b_0000_0001;
+0056            607   ;        src/bootloader.c:71: P3 |= 0b_0000_0001;
 0056 43B001     608            orl     _P3,#0x01
-0059            609   ;        src/bootloader.c:73: XBR2 &= ~0x80;
+0059            609   ;        src/bootloader.c:72: XBR2 &= ~0x80;
 0059 53E37F     610            anl     _XBR2,#0x7F
-005C            611   ;        src/bootloader.c:74: XBR2 |= 0x40;
+005C            611   ;        src/bootloader.c:73: XBR2 |= 0x40;
 005C 43E340     612            orl     _XBR2,#0x40
-005F            613   ;        src/bootloader.c:75: P2_1 = 0;
+005F            613   ;        src/bootloader.c:74: P2_1 = 0;
 005F C2A1       614            clr     _P2_1
 0061 22         615            ret
 0062            616            rseg R_CSEG

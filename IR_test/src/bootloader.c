@@ -51,8 +51,7 @@ char _c51_external_startup (void)
 	#endif
 
 	SFRPAGE = 0x00;
-	P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output (P0.4)
-					// UART1 TX P0.6
+	P0MDOUT |= 0x14; // Enable UART0 TX as push-pull output P0.4, P0.2
 	P0SKIP = 0xC3;
 	XBR0     = 0x01; // Enable UART0 on P0.4(TX) and P0.5(RX)
 	XBR1     = 0x00;
